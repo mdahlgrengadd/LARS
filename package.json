@@ -57,7 +57,7 @@
   },
   "pre-commit": [
     "eslint",
-    "eslint-test"
+    "eslint:test"
   ],
   "dependencies": {
     "waves-audio": "github:wavesjs/waves-audio",
