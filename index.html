@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>wavesurfer.js | Cursor Example</title>
+        <title>wavesurfer.js | Custom Backend Example</title>
 
         <link href="data:image/gif;" rel="icon" type="image/x-icon" />
 
@@ -25,7 +25,7 @@
                     <li><a href="/"><i class="glyphicon glyphicon-home"></i></a></li>
                 </ul>
 
-                <h1 itemprop="name">Cursor Plugin Example</h1>
+                <h1 itemprop="name">Custom Backend Plugin Example</h1>
             </div>
 
             <div id="demo">
@@ -49,15 +49,15 @@
             </div>
 
             <div class="row marketing">
-                <h3>Cursor plugin</h3>
+                <h3>Custom backend plugin</h3>
                 <hr />
-                <p>Shows a cursor on the waveform.</p>
+                <p>Playes waveform with custom backend.</p>
 
                 <p>
 <pre><code>var wavesurfer = WaveSurfer.create({
     container: document.querySelector('#waveform'),
     plugins: [
-        WaveSurfer.cursor.create()
+        BackendPlugin.create()
     ]
 });
 </code></pre>

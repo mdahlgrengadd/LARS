@@ -1,4 +1,4 @@
-import WebAudio from './webaudio_subclassed';
+import MyWebAudio from './webaudio_subclassed';
 
 export default class BackendPlugin {
 
@@ -12,8 +12,9 @@ export default class BackendPlugin {
     }
 
     constructor(params, ws) {
+        console.log('Custom backend constructor');
         this.wavesurfer = ws;
-        this.wavesurfer.Backend = WebAudio;
+        this.wavesurfer.Backend = MyWebAudio;
         this.wavesurfer.createBackend();
     }
 

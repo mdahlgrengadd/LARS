@@ -31,15 +31,15 @@ const config = {
         umdNamedDefine: true
     },
     module: {
-        preLoaders: [{
+        /*preLoaders: [{
             test: /(\.jsx|\.js)$/,
             loader: 'eslint',
             include: projectRoot,
             exclude: /(node_modules|bower_components)/
-        }],
+        }],*/
         loaders: [{
             test: /(\.jsx|\.js)$/,
-            loader: 'babel',
+            loader: 'babel-loader',
             include: projectRoot
                 /*exclude: /(node_modules|bower_components)/*/
         }]
