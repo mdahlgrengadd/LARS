@@ -1,10 +1,11 @@
 /* eslint-env browser */
 // 'use strict';
 import * as wavesAudio from 'waves-audio';
+import * as wavesLoaders from 'waves-loaders';
 import WaveSurfer from 'wavesurfer.js';
 import GranularBackend from './backend_granular_player';
 import SegmentBackend from './backend_segment_player';
-import * as wavesLoaders from 'waves-loaders';
+
 
 // Create an instance
 let wavesurfer1 = {};
@@ -16,15 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const button1 = document.querySelector('[data-action="play1"]');
     const button2 = document.querySelector('[data-action="stop1"]');
 
-    let loader = new wavesLoaders.SuperLoader(); // instantiate loader
+    const loader = new wavesLoaders.SuperLoader(); // instantiate loader
 
-    let assets = [
-        "../assets/footstomps.json",
-        "../assets/3_4_guitar-loop.json"
+    const assets = [
+        '/assets/footstomps.json',
+        '/assets/3_4_guitar-loop.json'
     ];
 
     // load audio and marker files
-    loader.load(assets).then(function(jsonfile) {
+    loader.load(assets).then((jsonfile) => {
 
 
         wavesurfer1 = WaveSurfer.create({
@@ -54,21 +55,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         wavesurfer2.load('../assets/footstomps.wav');
 
-        var slider = document.querySelector('#slider');
+        const slider = document.querySelector('#slider');
 
-        slider.oninput = function() {
-            var zoomLevel = Number(slider.value) / 100.0;
+        slider.oninput = () => {
+            const zoomLevel = Number(slider.value) / 100.0;
             globalPlayControl.speed = zoomLevel * 2;
         };
 
         globalPlayControl.speed = 1.3 * 2;
 
-        button1.addEventListener('click', function() {
+        button1.addEventListener('click', () => {
             globalPlayControl.start();
 
         });
 
-        button2.addEventListener('click', function() {
+        button2.addEventListener('click', () => {
             globalPlayControl.stop();
         });
 
