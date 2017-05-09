@@ -60,19 +60,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var wavesAudio = _interopRequireWildcard(_wavesAudio);
 	
-	var _wavesLoaders = __webpack_require__(153);
+	var _wavesLoaders = __webpack_require__(137);
 	
 	var wavesLoaders = _interopRequireWildcard(_wavesLoaders);
 	
-	var _wavesurfer = __webpack_require__(137);
+	var _wavesurfer = __webpack_require__(149);
 	
 	var _wavesurfer2 = _interopRequireDefault(_wavesurfer);
 	
-	var _backend_granular_player = __webpack_require__(139);
+	var _backend_granular_player = __webpack_require__(151);
 	
 	var _backend_granular_player2 = _interopRequireDefault(_backend_granular_player);
 	
-	var _backend_segment_player = __webpack_require__(151);
+	var _backend_segment_player = __webpack_require__(163);
 	
 	var _backend_segment_player2 = _interopRequireDefault(_backend_segment_player);
 	
@@ -7586,6 +7586,1097 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 137 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _loader = __webpack_require__(138);
+	
+	Object.defineProperty(exports, 'Loader', {
+	  enumerable: true,
+	  get: function get() {
+	    return _interopRequireDefault(_loader).default;
+	  }
+	});
+	
+	var _audioBufferLoader = __webpack_require__(147);
+	
+	Object.defineProperty(exports, 'AudioBufferLoader', {
+	  enumerable: true,
+	  get: function get() {
+	    return _interopRequireDefault(_audioBufferLoader).default;
+	  }
+	});
+	
+	var _superLoader = __webpack_require__(148);
+	
+	Object.defineProperty(exports, 'SuperLoader', {
+	  enumerable: true,
+	  get: function get() {
+	    return _interopRequireDefault(_superLoader).default;
+	  }
+	});
+
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { default: obj };
+	}
+
+/***/ },
+/* 138 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _promise = __webpack_require__(139);
+	
+	var _promise2 = _interopRequireDefault(_promise);
+	
+	var _classCallCheck2 = __webpack_require__(4);
+	
+	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+	
+	var _createClass2 = __webpack_require__(5);
+	
+	var _createClass3 = _interopRequireDefault(_createClass2);
+	
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { default: obj };
+	}
+	
+	/**
+	 * Gets called if a parameter is missing and the expression
+	 * specifying the default value is evaluated.
+	 * @function
+	 */
+	function throwIfMissing() {
+	  throw new Error('Missing parameter');
+	}
+	
+	/**
+	 * Promise based implementation of XMLHttpRequest Level 2 for GET method.
+	 */
+	
+	var Loader = function () {
+	  /**
+	   * @constructs
+	   * @param {string} [responseType=""] - responseType's value, "text" (equal to ""), "arraybuffer", "blob", "document" or "json"
+	   */
+	
+	  function Loader() {
+	    var responseType = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
+	    (0, _classCallCheck3.default)(this, Loader);
+	
+	    /**
+	     * @type {string}
+	     */
+	    this.responseType = responseType;
+	    // rename to `onProgress` ?
+	    /**
+	     * @type {function}
+	     */
+	    this.progressCb = undefined;
+	  }
+	
+	  /**
+	   * Method for a promise based file loading.
+	   * Internally switch between loadOne and loadAll.
+	   * @public
+	   * @param {(string|string[])} fileURLs - The URL(s) of the files to load. Accepts a URL pointing to the file location or an array of URLs.
+	   * @returns {Promise}
+	   */
+	
+	  (0, _createClass3.default)(Loader, [{
+	    key: 'load',
+	    value: function load() {
+	      var fileURLs = arguments.length <= 0 || arguments[0] === undefined ? throwIfMissing() : arguments[0];
+	
+	      if (fileURLs === undefined) throw new Error('load needs at least a url to load');
+	      if (Array.isArray(fileURLs)) {
+	        return this.loadAll(fileURLs);
+	      } else {
+	        return this.loadOne(fileURLs);
+	      }
+	    }
+	
+	    /**
+	     * Load a single file
+	     * @private
+	     * @param {string} fileURL - The URL of the file to load.
+	     * @returns {Promise}
+	     */
+	
+	  }, {
+	    key: 'loadOne',
+	    value: function loadOne(fileURL) {
+	      return this.fileLoadingRequest(fileURL);
+	    }
+	
+	    /**
+	     * Load all files at once in a single array and return a Promise
+	     * @private
+	     * @param {string[]} fileURLs - The URLs array of the files to load.
+	     * @returns {Promise}
+	     */
+	
+	  }, {
+	    key: 'loadAll',
+	    value: function loadAll(fileURLs) {
+	      var urlsCount = fileURLs.length,
+	          promises = [];
+	
+	      for (var i = 0; i < urlsCount; ++i) {
+	        promises.push(this.fileLoadingRequest(fileURLs[i], i));
+	      }
+	
+	      return _promise2.default.all(promises);
+	    }
+	
+	    /**
+	     * Load a file asynchronously, return a Promise.
+	     * @private
+	     * @param {string} url - The URL of the file to load
+	     * @param {string} [index] - The index of the file in the array of files to load
+	     * @returns {Promise}
+	     */
+	
+	  }, {
+	    key: 'fileLoadingRequest',
+	    value: function fileLoadingRequest(url, index) {
+	      var _this = this;
+	
+	      var promise = new _promise2.default(function (resolve, reject) {
+	        var request = new XMLHttpRequest();
+	        request.open('GET', url, true);
+	        request.index = index;
+	        if (_this.responseType) {
+	          request.responseType = _this.responseType;
+	        } else {
+	          var suffix = '.json';
+	          if (url.indexOf(suffix, _this.length - suffix.length) !== -1) {
+	            request.responseType = 'json';
+	          } else {
+	            request.responseType = 'arraybuffer';
+	          }
+	        }
+	        request.addEventListener('load', function () {
+	          // Test request.status value, as 404 will also get there
+	          // Test request.status === 0 for cordova internal ajax calls
+	          if (request.status === 200 || request.status === 304 || request.status === 0) {
+	            // Hack for iOS 7, to remove as soon as possible
+	            if (this.responseType === 'json' && typeof request.response === 'string') {
+	              request.response = JSON.parse(request.response);
+	            }
+	            resolve(request.response);
+	          } else {
+	            reject(new Error(request.statusText));
+	          }
+	        });
+	        request.addEventListener('progress', function (evt) {
+	          if (_this.progressCallback) {
+	            if (index !== undefined) {
+	              _this.progressCallback({
+	                index: index,
+	                value: evt.loaded / evt.total,
+	                loaded: evt.loaded,
+	                total: evt.total
+	              });
+	            } else {
+	              _this.progressCallback({
+	                value: evt.loaded / evt.total,
+	                loaded: evt.loaded,
+	                total: evt.total
+	              });
+	            }
+	          }
+	        });
+	        // Manage network errors
+	        request.addEventListener('error', function () {
+	          reject(new Error('Network Error'));
+	        });
+	
+	        request.send();
+	      });
+	      return promise;
+	    }
+	
+	    /**
+	     * Get the callback function to get the progress of file loading process.
+	     * This is only for the file loading progress as decodeAudioData doesn't
+	     * expose a decode progress value.
+	     * @type {function}
+	     */
+	
+	  }, {
+	    key: 'progressCallback',
+	    get: function get() {
+	      return this.progressCb;
+	    }
+	
+	    /**
+	     * Set the callback function to get the progress of file loading process.
+	     * This is only for the file loading progress as decodeAudioData doesn't
+	     * expose a decode progress value.
+	     * @type {function} callback - The callback that handles the response.
+	     */
+	
+	    , set: function set(callback) {
+	      this.progressCb = callback;
+	    }
+	  }]);
+	  return Loader;
+	}();
+
+	exports.default = Loader;
+
+/***/ },
+/* 139 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	module.exports = { "default": __webpack_require__(140), __esModule: true };
+
+/***/ },
+/* 140 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	__webpack_require__(80);
+	__webpack_require__(40);
+	__webpack_require__(62);
+	__webpack_require__(141);
+	module.exports = __webpack_require__(11).Promise;
+
+/***/ },
+/* 141 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var LIBRARY = __webpack_require__(44),
+	    global = __webpack_require__(10),
+	    ctx = __webpack_require__(12),
+	    classof = __webpack_require__(103),
+	    $export = __webpack_require__(9),
+	    isObject = __webpack_require__(17),
+	    aFunction = __webpack_require__(13),
+	    anInstance = __webpack_require__(98),
+	    forOf = __webpack_require__(99),
+	    speciesConstructor = __webpack_require__(142),
+	    task = __webpack_require__(143).set,
+	    microtask = __webpack_require__(145)(),
+	    PROMISE = 'Promise',
+	    TypeError = global.TypeError,
+	    process = global.process,
+	    $Promise = global[PROMISE],
+	    process = global.process,
+	    isNode = classof(process) == 'process',
+	    empty = function empty() {/* empty */},
+	    Internal,
+	    GenericPromiseCapability,
+	    Wrapper;
+	
+	var USE_NATIVE = !!function () {
+	  try {
+	    // correct subclassing with @@species support
+	    var promise = $Promise.resolve(1),
+	        FakePromise = (promise.constructor = {})[__webpack_require__(61)('species')] = function (exec) {
+	      exec(empty, empty);
+	    };
+	    // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
+	    return (isNode || typeof PromiseRejectionEvent == 'function') && promise.then(empty) instanceof FakePromise;
+	  } catch (e) {/* empty */}
+	}();
+	
+	// helpers
+	var sameConstructor = function sameConstructor(a, b) {
+	  // with library wrapper special case
+	  return a === b || a === $Promise && b === Wrapper;
+	};
+	var isThenable = function isThenable(it) {
+	  var then;
+	  return isObject(it) && typeof (then = it.then) == 'function' ? then : false;
+	};
+	var newPromiseCapability = function newPromiseCapability(C) {
+	  return sameConstructor($Promise, C) ? new PromiseCapability(C) : new GenericPromiseCapability(C);
+	};
+	var PromiseCapability = GenericPromiseCapability = function GenericPromiseCapability(C) {
+	  var resolve, reject;
+	  this.promise = new C(function ($$resolve, $$reject) {
+	    if (resolve !== undefined || reject !== undefined) throw TypeError('Bad Promise constructor');
+	    resolve = $$resolve;
+	    reject = $$reject;
+	  });
+	  this.resolve = aFunction(resolve);
+	  this.reject = aFunction(reject);
+	};
+	var perform = function perform(exec) {
+	  try {
+	    exec();
+	  } catch (e) {
+	    return { error: e };
+	  }
+	};
+	var notify = function notify(promise, isReject) {
+	  if (promise._n) return;
+	  promise._n = true;
+	  var chain = promise._c;
+	  microtask(function () {
+	    var value = promise._v,
+	        ok = promise._s == 1,
+	        i = 0;
+	    var run = function run(reaction) {
+	      var handler = ok ? reaction.ok : reaction.fail,
+	          resolve = reaction.resolve,
+	          reject = reaction.reject,
+	          domain = reaction.domain,
+	          result,
+	          then;
+	      try {
+	        if (handler) {
+	          if (!ok) {
+	            if (promise._h == 2) onHandleUnhandled(promise);
+	            promise._h = 1;
+	          }
+	          if (handler === true) result = value;else {
+	            if (domain) domain.enter();
+	            result = handler(value);
+	            if (domain) domain.exit();
+	          }
+	          if (result === reaction.promise) {
+	            reject(TypeError('Promise-chain cycle'));
+	          } else if (then = isThenable(result)) {
+	            then.call(result, resolve, reject);
+	          } else resolve(result);
+	        } else reject(value);
+	      } catch (e) {
+	        reject(e);
+	      }
+	    };
+	    while (chain.length > i) {
+	      run(chain[i++]);
+	    } // variable length - can't use forEach
+	    promise._c = [];
+	    promise._n = false;
+	    if (isReject && !promise._h) onUnhandled(promise);
+	  });
+	};
+	var onUnhandled = function onUnhandled(promise) {
+	  task.call(global, function () {
+	    var value = promise._v,
+	        abrupt,
+	        handler,
+	        console;
+	    if (isUnhandled(promise)) {
+	      abrupt = perform(function () {
+	        if (isNode) {
+	          process.emit('unhandledRejection', value, promise);
+	        } else if (handler = global.onunhandledrejection) {
+	          handler({ promise: promise, reason: value });
+	        } else if ((console = global.console) && console.error) {
+	          console.error('Unhandled promise rejection', value);
+	        }
+	      });
+	      // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
+	      promise._h = isNode || isUnhandled(promise) ? 2 : 1;
+	    }promise._a = undefined;
+	    if (abrupt) throw abrupt.error;
+	  });
+	};
+	var isUnhandled = function isUnhandled(promise) {
+	  if (promise._h == 1) return false;
+	  var chain = promise._a || promise._c,
+	      i = 0,
+	      reaction;
+	  while (chain.length > i) {
+	    reaction = chain[i++];
+	    if (reaction.fail || !isUnhandled(reaction.promise)) return false;
+	  }return true;
+	};
+	var onHandleUnhandled = function onHandleUnhandled(promise) {
+	  task.call(global, function () {
+	    var handler;
+	    if (isNode) {
+	      process.emit('rejectionHandled', promise);
+	    } else if (handler = global.onrejectionhandled) {
+	      handler({ promise: promise, reason: promise._v });
+	    }
+	  });
+	};
+	var $reject = function $reject(value) {
+	  var promise = this;
+	  if (promise._d) return;
+	  promise._d = true;
+	  promise = promise._w || promise; // unwrap
+	  promise._v = value;
+	  promise._s = 2;
+	  if (!promise._a) promise._a = promise._c.slice();
+	  notify(promise, true);
+	};
+	var $resolve = function $resolve(value) {
+	  var promise = this,
+	      then;
+	  if (promise._d) return;
+	  promise._d = true;
+	  promise = promise._w || promise; // unwrap
+	  try {
+	    if (promise === value) throw TypeError("Promise can't be resolved itself");
+	    if (then = isThenable(value)) {
+	      microtask(function () {
+	        var wrapper = { _w: promise, _d: false }; // wrap
+	        try {
+	          then.call(value, ctx($resolve, wrapper, 1), ctx($reject, wrapper, 1));
+	        } catch (e) {
+	          $reject.call(wrapper, e);
+	        }
+	      });
+	    } else {
+	      promise._v = value;
+	      promise._s = 1;
+	      notify(promise, false);
+	    }
+	  } catch (e) {
+	    $reject.call({ _w: promise, _d: false }, e); // wrap
+	  }
+	};
+	
+	// constructor polyfill
+	if (!USE_NATIVE) {
+	  // 25.4.3.1 Promise(executor)
+	  $Promise = function Promise(executor) {
+	    anInstance(this, $Promise, PROMISE, '_h');
+	    aFunction(executor);
+	    Internal.call(this);
+	    try {
+	      executor(ctx($resolve, this, 1), ctx($reject, this, 1));
+	    } catch (err) {
+	      $reject.call(this, err);
+	    }
+	  };
+	  Internal = function Promise(executor) {
+	    this._c = []; // <- awaiting reactions
+	    this._a = undefined; // <- checked in isUnhandled reactions
+	    this._s = 0; // <- state
+	    this._d = false; // <- done
+	    this._v = undefined; // <- value
+	    this._h = 0; // <- rejection state, 0 - default, 1 - handled, 2 - unhandled
+	    this._n = false; // <- notify
+	  };
+	  Internal.prototype = __webpack_require__(97)($Promise.prototype, {
+	    // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
+	    then: function then(onFulfilled, onRejected) {
+	      var reaction = newPromiseCapability(speciesConstructor(this, $Promise));
+	      reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
+	      reaction.fail = typeof onRejected == 'function' && onRejected;
+	      reaction.domain = isNode ? process.domain : undefined;
+	      this._c.push(reaction);
+	      if (this._a) this._a.push(reaction);
+	      if (this._s) notify(this, false);
+	      return reaction.promise;
+	    },
+	    // 25.4.5.1 Promise.prototype.catch(onRejected)
+	    'catch': function _catch(onRejected) {
+	      return this.then(undefined, onRejected);
+	    }
+	  });
+	  PromiseCapability = function PromiseCapability() {
+	    var promise = new Internal();
+	    this.promise = promise;
+	    this.resolve = ctx($resolve, promise, 1);
+	    this.reject = ctx($reject, promise, 1);
+	  };
+	}
+	
+	$export($export.G + $export.W + $export.F * !USE_NATIVE, { Promise: $Promise });
+	__webpack_require__(60)($Promise, PROMISE);
+	__webpack_require__(104)(PROMISE);
+	Wrapper = __webpack_require__(11)[PROMISE];
+	
+	// statics
+	$export($export.S + $export.F * !USE_NATIVE, PROMISE, {
+	  // 25.4.4.5 Promise.reject(r)
+	  reject: function reject(r) {
+	    var capability = newPromiseCapability(this),
+	        $$reject = capability.reject;
+	    $$reject(r);
+	    return capability.promise;
+	  }
+	});
+	$export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
+	  // 25.4.4.6 Promise.resolve(x)
+	  resolve: function resolve(x) {
+	    // instanceof instead of internal slot check because we should fix it without replacement native Promise core
+	    if (x instanceof $Promise && sameConstructor(x.constructor, this)) return x;
+	    var capability = newPromiseCapability(this),
+	        $$resolve = capability.resolve;
+	    $$resolve(x);
+	    return capability.promise;
+	  }
+	});
+	$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(146)(function (iter) {
+	  $Promise.all(iter)['catch'](empty);
+	})), PROMISE, {
+	  // 25.4.4.1 Promise.all(iterable)
+	  all: function all(iterable) {
+	    var C = this,
+	        capability = newPromiseCapability(C),
+	        resolve = capability.resolve,
+	        reject = capability.reject;
+	    var abrupt = perform(function () {
+	      var values = [],
+	          index = 0,
+	          remaining = 1;
+	      forOf(iterable, false, function (promise) {
+	        var $index = index++,
+	            alreadyCalled = false;
+	        values.push(undefined);
+	        remaining++;
+	        C.resolve(promise).then(function (value) {
+	          if (alreadyCalled) return;
+	          alreadyCalled = true;
+	          values[$index] = value;
+	          --remaining || resolve(values);
+	        }, reject);
+	      });
+	      --remaining || resolve(values);
+	    });
+	    if (abrupt) reject(abrupt.error);
+	    return capability.promise;
+	  },
+	  // 25.4.4.4 Promise.race(iterable)
+	  race: function race(iterable) {
+	    var C = this,
+	        capability = newPromiseCapability(C),
+	        reject = capability.reject;
+	    var abrupt = perform(function () {
+	      forOf(iterable, false, function (promise) {
+	        C.resolve(promise).then(capability.resolve, reject);
+	      });
+	    });
+	    if (abrupt) reject(abrupt.error);
+	    return capability.promise;
+	  }
+	});
+
+/***/ },
+/* 142 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	// 7.3.20 SpeciesConstructor(O, defaultConstructor)
+	var anObject = __webpack_require__(16),
+	    aFunction = __webpack_require__(13),
+	    SPECIES = __webpack_require__(61)('species');
+	module.exports = function (O, D) {
+	  var C = anObject(O).constructor,
+	      S;
+	  return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? D : aFunction(S);
+	};
+
+/***/ },
+/* 143 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var ctx = __webpack_require__(12),
+	    invoke = __webpack_require__(144),
+	    html = __webpack_require__(59),
+	    cel = __webpack_require__(21),
+	    global = __webpack_require__(10),
+	    process = global.process,
+	    setTask = global.setImmediate,
+	    clearTask = global.clearImmediate,
+	    MessageChannel = global.MessageChannel,
+	    counter = 0,
+	    queue = {},
+	    ONREADYSTATECHANGE = 'onreadystatechange',
+	    defer,
+	    channel,
+	    port;
+	var run = function run() {
+	  var id = +this;
+	  if (queue.hasOwnProperty(id)) {
+	    var fn = queue[id];
+	    delete queue[id];
+	    fn();
+	  }
+	};
+	var listener = function listener(event) {
+	  run.call(event.data);
+	};
+	// Node.js 0.9+ & IE10+ has setImmediate, otherwise:
+	if (!setTask || !clearTask) {
+	  setTask = function setImmediate(fn) {
+	    var args = [],
+	        i = 1;
+	    while (arguments.length > i) {
+	      args.push(arguments[i++]);
+	    }queue[++counter] = function () {
+	      invoke(typeof fn == 'function' ? fn : Function(fn), args);
+	    };
+	    defer(counter);
+	    return counter;
+	  };
+	  clearTask = function clearImmediate(id) {
+	    delete queue[id];
+	  };
+	  // Node.js 0.8-
+	  if (__webpack_require__(54)(process) == 'process') {
+	    defer = function defer(id) {
+	      process.nextTick(ctx(run, id, 1));
+	    };
+	    // Browsers with MessageChannel, includes WebWorkers
+	  } else if (MessageChannel) {
+	    channel = new MessageChannel();
+	    port = channel.port2;
+	    channel.port1.onmessage = listener;
+	    defer = ctx(port.postMessage, port, 1);
+	    // Browsers with postMessage, skip WebWorkers
+	    // IE8 has postMessage, but it's sync & typeof its postMessage is 'object'
+	  } else if (global.addEventListener && typeof postMessage == 'function' && !global.importScripts) {
+	    defer = function defer(id) {
+	      global.postMessage(id + '', '*');
+	    };
+	    global.addEventListener('message', listener, false);
+	    // IE8-
+	  } else if (ONREADYSTATECHANGE in cel('script')) {
+	    defer = function defer(id) {
+	      html.appendChild(cel('script'))[ONREADYSTATECHANGE] = function () {
+	        html.removeChild(this);
+	        run.call(id);
+	      };
+	    };
+	    // Rest old browsers
+	  } else {
+	    defer = function defer(id) {
+	      setTimeout(ctx(run, id, 1), 0);
+	    };
+	  }
+	}
+	module.exports = {
+	  set: setTask,
+	  clear: clearTask
+	};
+
+/***/ },
+/* 144 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	// fast apply, http://jsperf.lnkit.com/fast-apply/5
+	module.exports = function (fn, args, that) {
+	                  var un = that === undefined;
+	                  switch (args.length) {
+	                                    case 0:
+	                                                      return un ? fn() : fn.call(that);
+	                                    case 1:
+	                                                      return un ? fn(args[0]) : fn.call(that, args[0]);
+	                                    case 2:
+	                                                      return un ? fn(args[0], args[1]) : fn.call(that, args[0], args[1]);
+	                                    case 3:
+	                                                      return un ? fn(args[0], args[1], args[2]) : fn.call(that, args[0], args[1], args[2]);
+	                                    case 4:
+	                                                      return un ? fn(args[0], args[1], args[2], args[3]) : fn.call(that, args[0], args[1], args[2], args[3]);
+	                  }return fn.apply(that, args);
+	};
+
+/***/ },
+/* 145 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var global = __webpack_require__(10),
+	    macrotask = __webpack_require__(143).set,
+	    Observer = global.MutationObserver || global.WebKitMutationObserver,
+	    process = global.process,
+	    Promise = global.Promise,
+	    isNode = __webpack_require__(54)(process) == 'process';
+	
+	module.exports = function () {
+	  var head, last, notify;
+	
+	  var flush = function flush() {
+	    var parent, fn;
+	    if (isNode && (parent = process.domain)) parent.exit();
+	    while (head) {
+	      fn = head.fn;
+	      head = head.next;
+	      try {
+	        fn();
+	      } catch (e) {
+	        if (head) notify();else last = undefined;
+	        throw e;
+	      }
+	    }last = undefined;
+	    if (parent) parent.enter();
+	  };
+	
+	  // Node.js
+	  if (isNode) {
+	    notify = function notify() {
+	      process.nextTick(flush);
+	    };
+	    // browsers with MutationObserver
+	  } else if (Observer) {
+	    var toggle = true,
+	        node = document.createTextNode('');
+	    new Observer(flush).observe(node, { characterData: true }); // eslint-disable-line no-new
+	    notify = function notify() {
+	      node.data = toggle = !toggle;
+	    };
+	    // environments with maybe non-completely correct, but existent Promise
+	  } else if (Promise && Promise.resolve) {
+	    var promise = Promise.resolve();
+	    notify = function notify() {
+	      promise.then(flush);
+	    };
+	    // for other environments - macrotask based on:
+	    // - setImmediate
+	    // - MessageChannel
+	    // - window.postMessag
+	    // - onreadystatechange
+	    // - setTimeout
+	  } else {
+	    notify = function notify() {
+	      // strange IE + webpack dev server bug - use .call(global)
+	      macrotask.call(global, flush);
+	    };
+	  }
+	
+	  return function (fn) {
+	    var task = { fn: fn, next: undefined };
+	    if (last) last.next = task;
+	    if (!head) {
+	      head = task;
+	      notify();
+	    }last = task;
+	  };
+	};
+
+/***/ },
+/* 146 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var ITERATOR = __webpack_require__(61)('iterator'),
+	    SAFE_CLOSING = false;
+	
+	try {
+	  var riter = [7][ITERATOR]();
+	  riter['return'] = function () {
+	    SAFE_CLOSING = true;
+	  };
+	  Array.from(riter, function () {
+	    throw 2;
+	  });
+	} catch (e) {/* empty */}
+	
+	module.exports = function (exec, skipClosing) {
+	  if (!skipClosing && !SAFE_CLOSING) return false;
+	  var safe = false;
+	  try {
+	    var arr = [7],
+	        iter = arr[ITERATOR]();
+	    iter.next = function () {
+	      return { done: safe = true };
+	    };
+	    arr[ITERATOR] = function () {
+	      return iter;
+	    };
+	    exec(arr);
+	  } catch (e) {/* empty */}
+	  return safe;
+	};
+
+/***/ },
+/* 147 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _promise = __webpack_require__(139);
+	
+	var _promise2 = _interopRequireDefault(_promise);
+	
+	var _getPrototypeOf = __webpack_require__(25);
+	
+	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
+	
+	var _classCallCheck2 = __webpack_require__(4);
+	
+	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+	
+	var _createClass2 = __webpack_require__(5);
+	
+	var _createClass3 = _interopRequireDefault(_createClass2);
+	
+	var _possibleConstructorReturn2 = __webpack_require__(36);
+	
+	var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
+	
+	var _get2 = __webpack_require__(117);
+	
+	var _get3 = _interopRequireDefault(_get2);
+	
+	var _inherits2 = __webpack_require__(83);
+	
+	var _inherits3 = _interopRequireDefault(_inherits2);
+	
+	var _loader = __webpack_require__(138);
+	
+	var _loader2 = _interopRequireDefault(_loader);
+	
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { default: obj };
+	}
+	
+	/**
+	 * Gets called if a parameter is missing and the expression
+	 * specifying the default value is evaluated.
+	 * @function
+	 */
+	function throwIfMissing() {
+	  throw new Error('Missing parameter');
+	}
+	
+	var audioContext = void 0;
+	
+	window.AudioContext = window.AudioContext || window.webkitAudioContext;
+	
+	try {
+	  audioContext = new window.AudioContext();
+	} catch (e) {}
+	
+	/**
+	 * AudioBufferLoader
+	 * Promise based implementation of XMLHttpRequest Level 2 for GET method and decode audio data for arraybuffer.
+	 */
+	
+	var AudioBufferLoader = function (_Loader) {
+	  (0, _inherits3.default)(AudioBufferLoader, _Loader);
+	
+	  /**
+	   * Set the responseType to 'arraybuffer' and initialize options.
+	   * @param {string} [responseType="arraybuffer"]
+	   */
+	
+	  function AudioBufferLoader() {
+	    var responseType = arguments.length <= 0 || arguments[0] === undefined ? 'arraybuffer' : arguments[0];
+	    (0, _classCallCheck3.default)(this, AudioBufferLoader);
+	
+	    var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(AudioBufferLoader).call(this, responseType));
+	
+	    _this.options = {
+	      "wrapAroundExtension": 0
+	    };
+	    _this.responseType = responseType;
+	    _this.audioContext = audioContext;
+	    return _this;
+	  }
+	
+	  /**
+	   * Allow to set the audio context that should be used in order to decode
+	   * the file and create the AudioBuffer.
+	   * @param {AudioContext} audioContext
+	   */
+	
+	  (0, _createClass3.default)(AudioBufferLoader, [{
+	    key: 'setAudioContext',
+	    value: function setAudioContext(audioContext) {
+	      this.audioContext = audioContext;
+	    }
+	
+	    /**
+	     * Method for promise audio file loading and decoding.
+	     * @param {(string|string[])} fileURLs - The URL(s) of the audio files to load. Accepts a URL pointing to the file location or an array of URLs.
+	     * @param {{wrapAroundExtension: number}} [options] - Object with a wrapAroundExtension key which set the length, in seconds to be copied from the begining at the end of the returned AudioBuffer
+	     * @returns {Promise}
+	     */
+	
+	  }, {
+	    key: 'load',
+	    value: function load() {
+	      var fileURLs = arguments.length <= 0 || arguments[0] === undefined ? throwIfMissing() : arguments[0];
+	      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	
+	      this.options = options;
+	      this.options.wrapAroundExtension = this.options.wrapAroundExtension || 0;
+	      return (0, _get3.default)((0, _getPrototypeOf2.default)(AudioBufferLoader.prototype), 'load', this).call(this, fileURLs);
+	    }
+	
+	    /**
+	     * Load a single audio file, decode it in an AudioBuffer, return a Promise
+	     * @private
+	     * @param {string} fileURL - The URL of the audio file location to load.
+	     * @returns {Promise}
+	     */
+	
+	  }, {
+	    key: 'loadOne',
+	    value: function loadOne(fileURL) {
+	      return (0, _get3.default)((0, _getPrototypeOf2.default)(AudioBufferLoader.prototype), 'loadOne', this).call(this, fileURL).then(this.decodeAudioData.bind(this), function (error) {
+	        throw error;
+	      });
+	    }
+	
+	    /**
+	     * Load all audio files at once in a single array, decode them in an array of AudioBuffers, and return a Promise.
+	     * @private
+	     * @param {string[]} fileURLs - The URLs array of the audio files to load.
+	     * @returns {Promise}
+	     */
+	
+	  }, {
+	    key: 'loadAll',
+	    value: function loadAll(fileURLs) {
+	      var _this2 = this;
+	
+	      return (0, _get3.default)((0, _getPrototypeOf2.default)(AudioBufferLoader.prototype), 'loadAll', this).call(this, fileURLs).then(function (arraybuffers) {
+	        return _promise2.default.all(arraybuffers.map(function (arraybuffer) {
+	          return _this2.decodeAudioData.bind(_this2)(arraybuffer);
+	        }));
+	      }, function (error) {
+	        throw error; // TODO: better error handler
+	      });
+	    }
+	
+	    /**
+	     * Decode Audio Data, return a Promise
+	     * @private
+	     * @param {arraybuffer} - The arraybuffer of the loaded audio file to be decoded.
+	     * @returns {Promise}
+	     */
+	
+	  }, {
+	    key: 'decodeAudioData',
+	    value: function decodeAudioData(arraybuffer) {
+	      var _this3 = this;
+	
+	      if (arraybuffer instanceof ArrayBuffer) {
+	        return new _promise2.default(function (resolve, reject) {
+	          _this3.audioContext.decodeAudioData(arraybuffer, // returned audio data array
+	          function (buffer) {
+	            if (_this3.options.wrapAroundExtension === 0) resolve(buffer);else resolve(_this3.__wrapAround(buffer));
+	          }, function (error) {
+	            reject(new Error("DecodeAudioData error"));
+	          });
+	        });
+	      } else {
+	        return new _promise2.default(function (resolve, reject) {
+	          resolve(arraybuffer);
+	        });
+	      }
+	    }
+	
+	    /**
+	     * WrapAround, copy the begining input buffer to the end of an output buffer
+	     * @private
+	     * @param {arraybuffer} inBuffer {arraybuffer} - The input buffer
+	     * @returns {arraybuffer} - The processed buffer (with frame copied from the begining to the end)
+	     */
+	
+	  }, {
+	    key: '__wrapAround',
+	    value: function __wrapAround(inBuffer) {
+	      var length = inBuffer.length + this.options.wrapAroundExtension * inBuffer.sampleRate;
+	
+	      var outBuffer = this.audioContext.createBuffer(inBuffer.numberOfChannels, length, inBuffer.sampleRate);
+	      var arrayChData, arrayOutChData;
+	
+	      for (var channel = 0; channel < inBuffer.numberOfChannels; channel++) {
+	        arrayChData = inBuffer.getChannelData(channel);
+	        arrayOutChData = outBuffer.getChannelData(channel);
+	
+	        arrayOutChData.forEach(function (sample, index) {
+	          if (index < inBuffer.length) arrayOutChData[index] = arrayChData[index];else arrayOutChData[index] = arrayChData[index - inBuffer.length];
+	        });
+	      }
+	
+	      return outBuffer;
+	    }
+	  }]);
+	  return AudioBufferLoader;
+	}(_loader2.default);
+
+	exports.default = AudioBufferLoader;
+
+/***/ },
+/* 148 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _getPrototypeOf = __webpack_require__(25);
+	
+	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
+	
+	var _classCallCheck2 = __webpack_require__(4);
+	
+	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+	
+	var _possibleConstructorReturn2 = __webpack_require__(36);
+	
+	var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
+	
+	var _inherits2 = __webpack_require__(83);
+	
+	var _inherits3 = _interopRequireDefault(_inherits2);
+	
+	var _audioBufferLoader = __webpack_require__(147);
+	
+	var _audioBufferLoader2 = _interopRequireDefault(_audioBufferLoader);
+	
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { default: obj };
+	}
+	
+	/**
+	 * SuperLoader
+	 * Helper to load multiple type of files, and get them in their useful type, json for json files, AudioBuffer for audio files.
+	 */
+	
+	var SuperLoader = function (_AudioBufferLoader) {
+	  (0, _inherits3.default)(SuperLoader, _AudioBufferLoader);
+	
+	  /**
+	   * Use composition to setup appropriate file loaders
+	   */
+	
+	  function SuperLoader() {
+	    (0, _classCallCheck3.default)(this, SuperLoader);
+	    return (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(SuperLoader).call(this, null));
+	    // bypass AudioBufferLoader constructor. This is bad but it works.
+	  }
+	
+	  return SuperLoader;
+	}(_audioBufferLoader2.default);
+
+	exports.default = SuperLoader;
+
+/***/ },
+/* 149 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module) {"use strict";
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -8469,10 +9560,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }]);
 	});
 	//# sourceMappingURL=wavesurfer.min.js.map
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(138)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(150)(module)))
 
 /***/ },
-/* 138 */
+/* 150 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -8489,7 +9580,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 139 */
+/* 151 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -8500,7 +9591,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _webaudio_subclassed = __webpack_require__(140);
+	var _webaudio_subclassed = __webpack_require__(152);
 	
 	var _webaudio_subclassed2 = _interopRequireDefault(_webaudio_subclassed);
 	
@@ -8549,7 +9640,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports['default'];
 
 /***/ },
-/* 140 */
+/* 152 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -8566,7 +9657,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var wavesAudio = _interopRequireWildcard(_wavesAudio);
 	
-	var _webaudio = __webpack_require__(141);
+	var _webaudio = __webpack_require__(153);
 	
 	var _webaudio2 = _interopRequireDefault(_webaudio);
 	
@@ -8863,7 +9954,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports['default'];
 
 /***/ },
-/* 141 */
+/* 153 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -8874,7 +9965,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _util = __webpack_require__(142);
+	var _util = __webpack_require__(154);
 	
 	var util = _interopRequireWildcard(_util);
 	
@@ -9625,7 +10716,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports['default'];
 
 /***/ },
-/* 142 */
+/* 154 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -9634,7 +10725,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	
-	var _ajax = __webpack_require__(143);
+	var _ajax = __webpack_require__(155);
 	
 	Object.defineProperty(exports, 'ajax', {
 	  enumerable: true,
@@ -9643,7 +10734,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	});
 	
-	var _getId = __webpack_require__(145);
+	var _getId = __webpack_require__(157);
 	
 	Object.defineProperty(exports, 'getId', {
 	  enumerable: true,
@@ -9652,7 +10743,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	});
 	
-	var _max = __webpack_require__(146);
+	var _max = __webpack_require__(158);
 	
 	Object.defineProperty(exports, 'max', {
 	  enumerable: true,
@@ -9661,7 +10752,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	});
 	
-	var _min = __webpack_require__(147);
+	var _min = __webpack_require__(159);
 	
 	Object.defineProperty(exports, 'min', {
 	  enumerable: true,
@@ -9670,7 +10761,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	});
 	
-	var _observer = __webpack_require__(144);
+	var _observer = __webpack_require__(156);
 	
 	Object.defineProperty(exports, 'Observer', {
 	  enumerable: true,
@@ -9679,7 +10770,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	});
 	
-	var _extend = __webpack_require__(148);
+	var _extend = __webpack_require__(160);
 	
 	Object.defineProperty(exports, 'extend', {
 	  enumerable: true,
@@ -9688,7 +10779,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	});
 	
-	var _style = __webpack_require__(149);
+	var _style = __webpack_require__(161);
 	
 	Object.defineProperty(exports, 'style', {
 	  enumerable: true,
@@ -9697,7 +10788,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	});
 	
-	var _debounce = __webpack_require__(150);
+	var _debounce = __webpack_require__(162);
 	
 	Object.defineProperty(exports, 'debounce', {
 	  enumerable: true,
@@ -9709,7 +10800,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ },
-/* 143 */
+/* 155 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -9719,7 +10810,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.default = ajax;
 	
-	var _observer = __webpack_require__(144);
+	var _observer = __webpack_require__(156);
 	
 	var _observer2 = _interopRequireDefault(_observer);
 	
@@ -9765,7 +10856,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports['default'];
 
 /***/ },
-/* 144 */
+/* 156 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9936,7 +11027,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports["default"];
 
 /***/ },
-/* 145 */
+/* 157 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -9956,7 +11047,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports['default'];
 
 /***/ },
-/* 146 */
+/* 158 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9983,7 +11074,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports["default"];
 
 /***/ },
-/* 147 */
+/* 159 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10010,7 +11101,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports["default"];
 
 /***/ },
-/* 148 */
+/* 160 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10042,7 +11133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports["default"];
 
 /***/ },
-/* 149 */
+/* 161 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10070,7 +11161,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports["default"];
 
 /***/ },
-/* 150 */
+/* 162 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10133,7 +11224,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 151 */
+/* 163 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -10144,7 +11235,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _webaudio_segment_player = __webpack_require__(152);
+	var _webaudio_segment_player = __webpack_require__(164);
 	
 	var _webaudio_segment_player2 = _interopRequireDefault(_webaudio_segment_player);
 	
@@ -10218,7 +11309,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = exports['default'];
 
 /***/ },
-/* 152 */
+/* 164 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -10235,11 +11326,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var wavesAudio = _interopRequireWildcard(_wavesAudio);
 	
-	var _wavesLoaders = __webpack_require__(153);
+	var _wavesLoaders = __webpack_require__(137);
 	
 	var wavesLoaders = _interopRequireWildcard(_wavesLoaders);
 	
-	var _webaudio = __webpack_require__(141);
+	var _webaudio = __webpack_require__(153);
 	
 	var _webaudio2 = _interopRequireDefault(_webaudio);
 	
@@ -10512,1097 +11603,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	exports.default = MyWebAudio;
 	module.exports = exports['default'];
-
-/***/ },
-/* 153 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _loader = __webpack_require__(154);
-	
-	Object.defineProperty(exports, 'Loader', {
-	  enumerable: true,
-	  get: function get() {
-	    return _interopRequireDefault(_loader).default;
-	  }
-	});
-	
-	var _audioBufferLoader = __webpack_require__(163);
-	
-	Object.defineProperty(exports, 'AudioBufferLoader', {
-	  enumerable: true,
-	  get: function get() {
-	    return _interopRequireDefault(_audioBufferLoader).default;
-	  }
-	});
-	
-	var _superLoader = __webpack_require__(164);
-	
-	Object.defineProperty(exports, 'SuperLoader', {
-	  enumerable: true,
-	  get: function get() {
-	    return _interopRequireDefault(_superLoader).default;
-	  }
-	});
-
-	function _interopRequireDefault(obj) {
-	  return obj && obj.__esModule ? obj : { default: obj };
-	}
-
-/***/ },
-/* 154 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _promise = __webpack_require__(155);
-	
-	var _promise2 = _interopRequireDefault(_promise);
-	
-	var _classCallCheck2 = __webpack_require__(4);
-	
-	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
-	
-	var _createClass2 = __webpack_require__(5);
-	
-	var _createClass3 = _interopRequireDefault(_createClass2);
-	
-	function _interopRequireDefault(obj) {
-	  return obj && obj.__esModule ? obj : { default: obj };
-	}
-	
-	/**
-	 * Gets called if a parameter is missing and the expression
-	 * specifying the default value is evaluated.
-	 * @function
-	 */
-	function throwIfMissing() {
-	  throw new Error('Missing parameter');
-	}
-	
-	/**
-	 * Promise based implementation of XMLHttpRequest Level 2 for GET method.
-	 */
-	
-	var Loader = function () {
-	  /**
-	   * @constructs
-	   * @param {string} [responseType=""] - responseType's value, "text" (equal to ""), "arraybuffer", "blob", "document" or "json"
-	   */
-	
-	  function Loader() {
-	    var responseType = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
-	    (0, _classCallCheck3.default)(this, Loader);
-	
-	    /**
-	     * @type {string}
-	     */
-	    this.responseType = responseType;
-	    // rename to `onProgress` ?
-	    /**
-	     * @type {function}
-	     */
-	    this.progressCb = undefined;
-	  }
-	
-	  /**
-	   * Method for a promise based file loading.
-	   * Internally switch between loadOne and loadAll.
-	   * @public
-	   * @param {(string|string[])} fileURLs - The URL(s) of the files to load. Accepts a URL pointing to the file location or an array of URLs.
-	   * @returns {Promise}
-	   */
-	
-	  (0, _createClass3.default)(Loader, [{
-	    key: 'load',
-	    value: function load() {
-	      var fileURLs = arguments.length <= 0 || arguments[0] === undefined ? throwIfMissing() : arguments[0];
-	
-	      if (fileURLs === undefined) throw new Error('load needs at least a url to load');
-	      if (Array.isArray(fileURLs)) {
-	        return this.loadAll(fileURLs);
-	      } else {
-	        return this.loadOne(fileURLs);
-	      }
-	    }
-	
-	    /**
-	     * Load a single file
-	     * @private
-	     * @param {string} fileURL - The URL of the file to load.
-	     * @returns {Promise}
-	     */
-	
-	  }, {
-	    key: 'loadOne',
-	    value: function loadOne(fileURL) {
-	      return this.fileLoadingRequest(fileURL);
-	    }
-	
-	    /**
-	     * Load all files at once in a single array and return a Promise
-	     * @private
-	     * @param {string[]} fileURLs - The URLs array of the files to load.
-	     * @returns {Promise}
-	     */
-	
-	  }, {
-	    key: 'loadAll',
-	    value: function loadAll(fileURLs) {
-	      var urlsCount = fileURLs.length,
-	          promises = [];
-	
-	      for (var i = 0; i < urlsCount; ++i) {
-	        promises.push(this.fileLoadingRequest(fileURLs[i], i));
-	      }
-	
-	      return _promise2.default.all(promises);
-	    }
-	
-	    /**
-	     * Load a file asynchronously, return a Promise.
-	     * @private
-	     * @param {string} url - The URL of the file to load
-	     * @param {string} [index] - The index of the file in the array of files to load
-	     * @returns {Promise}
-	     */
-	
-	  }, {
-	    key: 'fileLoadingRequest',
-	    value: function fileLoadingRequest(url, index) {
-	      var _this = this;
-	
-	      var promise = new _promise2.default(function (resolve, reject) {
-	        var request = new XMLHttpRequest();
-	        request.open('GET', url, true);
-	        request.index = index;
-	        if (_this.responseType) {
-	          request.responseType = _this.responseType;
-	        } else {
-	          var suffix = '.json';
-	          if (url.indexOf(suffix, _this.length - suffix.length) !== -1) {
-	            request.responseType = 'json';
-	          } else {
-	            request.responseType = 'arraybuffer';
-	          }
-	        }
-	        request.addEventListener('load', function () {
-	          // Test request.status value, as 404 will also get there
-	          // Test request.status === 0 for cordova internal ajax calls
-	          if (request.status === 200 || request.status === 304 || request.status === 0) {
-	            // Hack for iOS 7, to remove as soon as possible
-	            if (this.responseType === 'json' && typeof request.response === 'string') {
-	              request.response = JSON.parse(request.response);
-	            }
-	            resolve(request.response);
-	          } else {
-	            reject(new Error(request.statusText));
-	          }
-	        });
-	        request.addEventListener('progress', function (evt) {
-	          if (_this.progressCallback) {
-	            if (index !== undefined) {
-	              _this.progressCallback({
-	                index: index,
-	                value: evt.loaded / evt.total,
-	                loaded: evt.loaded,
-	                total: evt.total
-	              });
-	            } else {
-	              _this.progressCallback({
-	                value: evt.loaded / evt.total,
-	                loaded: evt.loaded,
-	                total: evt.total
-	              });
-	            }
-	          }
-	        });
-	        // Manage network errors
-	        request.addEventListener('error', function () {
-	          reject(new Error('Network Error'));
-	        });
-	
-	        request.send();
-	      });
-	      return promise;
-	    }
-	
-	    /**
-	     * Get the callback function to get the progress of file loading process.
-	     * This is only for the file loading progress as decodeAudioData doesn't
-	     * expose a decode progress value.
-	     * @type {function}
-	     */
-	
-	  }, {
-	    key: 'progressCallback',
-	    get: function get() {
-	      return this.progressCb;
-	    }
-	
-	    /**
-	     * Set the callback function to get the progress of file loading process.
-	     * This is only for the file loading progress as decodeAudioData doesn't
-	     * expose a decode progress value.
-	     * @type {function} callback - The callback that handles the response.
-	     */
-	
-	    , set: function set(callback) {
-	      this.progressCb = callback;
-	    }
-	  }]);
-	  return Loader;
-	}();
-
-	exports.default = Loader;
-
-/***/ },
-/* 155 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	module.exports = { "default": __webpack_require__(156), __esModule: true };
-
-/***/ },
-/* 156 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	__webpack_require__(80);
-	__webpack_require__(40);
-	__webpack_require__(62);
-	__webpack_require__(157);
-	module.exports = __webpack_require__(11).Promise;
-
-/***/ },
-/* 157 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var LIBRARY = __webpack_require__(44),
-	    global = __webpack_require__(10),
-	    ctx = __webpack_require__(12),
-	    classof = __webpack_require__(103),
-	    $export = __webpack_require__(9),
-	    isObject = __webpack_require__(17),
-	    aFunction = __webpack_require__(13),
-	    anInstance = __webpack_require__(98),
-	    forOf = __webpack_require__(99),
-	    speciesConstructor = __webpack_require__(158),
-	    task = __webpack_require__(159).set,
-	    microtask = __webpack_require__(161)(),
-	    PROMISE = 'Promise',
-	    TypeError = global.TypeError,
-	    process = global.process,
-	    $Promise = global[PROMISE],
-	    process = global.process,
-	    isNode = classof(process) == 'process',
-	    empty = function empty() {/* empty */},
-	    Internal,
-	    GenericPromiseCapability,
-	    Wrapper;
-	
-	var USE_NATIVE = !!function () {
-	  try {
-	    // correct subclassing with @@species support
-	    var promise = $Promise.resolve(1),
-	        FakePromise = (promise.constructor = {})[__webpack_require__(61)('species')] = function (exec) {
-	      exec(empty, empty);
-	    };
-	    // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
-	    return (isNode || typeof PromiseRejectionEvent == 'function') && promise.then(empty) instanceof FakePromise;
-	  } catch (e) {/* empty */}
-	}();
-	
-	// helpers
-	var sameConstructor = function sameConstructor(a, b) {
-	  // with library wrapper special case
-	  return a === b || a === $Promise && b === Wrapper;
-	};
-	var isThenable = function isThenable(it) {
-	  var then;
-	  return isObject(it) && typeof (then = it.then) == 'function' ? then : false;
-	};
-	var newPromiseCapability = function newPromiseCapability(C) {
-	  return sameConstructor($Promise, C) ? new PromiseCapability(C) : new GenericPromiseCapability(C);
-	};
-	var PromiseCapability = GenericPromiseCapability = function GenericPromiseCapability(C) {
-	  var resolve, reject;
-	  this.promise = new C(function ($$resolve, $$reject) {
-	    if (resolve !== undefined || reject !== undefined) throw TypeError('Bad Promise constructor');
-	    resolve = $$resolve;
-	    reject = $$reject;
-	  });
-	  this.resolve = aFunction(resolve);
-	  this.reject = aFunction(reject);
-	};
-	var perform = function perform(exec) {
-	  try {
-	    exec();
-	  } catch (e) {
-	    return { error: e };
-	  }
-	};
-	var notify = function notify(promise, isReject) {
-	  if (promise._n) return;
-	  promise._n = true;
-	  var chain = promise._c;
-	  microtask(function () {
-	    var value = promise._v,
-	        ok = promise._s == 1,
-	        i = 0;
-	    var run = function run(reaction) {
-	      var handler = ok ? reaction.ok : reaction.fail,
-	          resolve = reaction.resolve,
-	          reject = reaction.reject,
-	          domain = reaction.domain,
-	          result,
-	          then;
-	      try {
-	        if (handler) {
-	          if (!ok) {
-	            if (promise._h == 2) onHandleUnhandled(promise);
-	            promise._h = 1;
-	          }
-	          if (handler === true) result = value;else {
-	            if (domain) domain.enter();
-	            result = handler(value);
-	            if (domain) domain.exit();
-	          }
-	          if (result === reaction.promise) {
-	            reject(TypeError('Promise-chain cycle'));
-	          } else if (then = isThenable(result)) {
-	            then.call(result, resolve, reject);
-	          } else resolve(result);
-	        } else reject(value);
-	      } catch (e) {
-	        reject(e);
-	      }
-	    };
-	    while (chain.length > i) {
-	      run(chain[i++]);
-	    } // variable length - can't use forEach
-	    promise._c = [];
-	    promise._n = false;
-	    if (isReject && !promise._h) onUnhandled(promise);
-	  });
-	};
-	var onUnhandled = function onUnhandled(promise) {
-	  task.call(global, function () {
-	    var value = promise._v,
-	        abrupt,
-	        handler,
-	        console;
-	    if (isUnhandled(promise)) {
-	      abrupt = perform(function () {
-	        if (isNode) {
-	          process.emit('unhandledRejection', value, promise);
-	        } else if (handler = global.onunhandledrejection) {
-	          handler({ promise: promise, reason: value });
-	        } else if ((console = global.console) && console.error) {
-	          console.error('Unhandled promise rejection', value);
-	        }
-	      });
-	      // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
-	      promise._h = isNode || isUnhandled(promise) ? 2 : 1;
-	    }promise._a = undefined;
-	    if (abrupt) throw abrupt.error;
-	  });
-	};
-	var isUnhandled = function isUnhandled(promise) {
-	  if (promise._h == 1) return false;
-	  var chain = promise._a || promise._c,
-	      i = 0,
-	      reaction;
-	  while (chain.length > i) {
-	    reaction = chain[i++];
-	    if (reaction.fail || !isUnhandled(reaction.promise)) return false;
-	  }return true;
-	};
-	var onHandleUnhandled = function onHandleUnhandled(promise) {
-	  task.call(global, function () {
-	    var handler;
-	    if (isNode) {
-	      process.emit('rejectionHandled', promise);
-	    } else if (handler = global.onrejectionhandled) {
-	      handler({ promise: promise, reason: promise._v });
-	    }
-	  });
-	};
-	var $reject = function $reject(value) {
-	  var promise = this;
-	  if (promise._d) return;
-	  promise._d = true;
-	  promise = promise._w || promise; // unwrap
-	  promise._v = value;
-	  promise._s = 2;
-	  if (!promise._a) promise._a = promise._c.slice();
-	  notify(promise, true);
-	};
-	var $resolve = function $resolve(value) {
-	  var promise = this,
-	      then;
-	  if (promise._d) return;
-	  promise._d = true;
-	  promise = promise._w || promise; // unwrap
-	  try {
-	    if (promise === value) throw TypeError("Promise can't be resolved itself");
-	    if (then = isThenable(value)) {
-	      microtask(function () {
-	        var wrapper = { _w: promise, _d: false }; // wrap
-	        try {
-	          then.call(value, ctx($resolve, wrapper, 1), ctx($reject, wrapper, 1));
-	        } catch (e) {
-	          $reject.call(wrapper, e);
-	        }
-	      });
-	    } else {
-	      promise._v = value;
-	      promise._s = 1;
-	      notify(promise, false);
-	    }
-	  } catch (e) {
-	    $reject.call({ _w: promise, _d: false }, e); // wrap
-	  }
-	};
-	
-	// constructor polyfill
-	if (!USE_NATIVE) {
-	  // 25.4.3.1 Promise(executor)
-	  $Promise = function Promise(executor) {
-	    anInstance(this, $Promise, PROMISE, '_h');
-	    aFunction(executor);
-	    Internal.call(this);
-	    try {
-	      executor(ctx($resolve, this, 1), ctx($reject, this, 1));
-	    } catch (err) {
-	      $reject.call(this, err);
-	    }
-	  };
-	  Internal = function Promise(executor) {
-	    this._c = []; // <- awaiting reactions
-	    this._a = undefined; // <- checked in isUnhandled reactions
-	    this._s = 0; // <- state
-	    this._d = false; // <- done
-	    this._v = undefined; // <- value
-	    this._h = 0; // <- rejection state, 0 - default, 1 - handled, 2 - unhandled
-	    this._n = false; // <- notify
-	  };
-	  Internal.prototype = __webpack_require__(97)($Promise.prototype, {
-	    // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
-	    then: function then(onFulfilled, onRejected) {
-	      var reaction = newPromiseCapability(speciesConstructor(this, $Promise));
-	      reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
-	      reaction.fail = typeof onRejected == 'function' && onRejected;
-	      reaction.domain = isNode ? process.domain : undefined;
-	      this._c.push(reaction);
-	      if (this._a) this._a.push(reaction);
-	      if (this._s) notify(this, false);
-	      return reaction.promise;
-	    },
-	    // 25.4.5.1 Promise.prototype.catch(onRejected)
-	    'catch': function _catch(onRejected) {
-	      return this.then(undefined, onRejected);
-	    }
-	  });
-	  PromiseCapability = function PromiseCapability() {
-	    var promise = new Internal();
-	    this.promise = promise;
-	    this.resolve = ctx($resolve, promise, 1);
-	    this.reject = ctx($reject, promise, 1);
-	  };
-	}
-	
-	$export($export.G + $export.W + $export.F * !USE_NATIVE, { Promise: $Promise });
-	__webpack_require__(60)($Promise, PROMISE);
-	__webpack_require__(104)(PROMISE);
-	Wrapper = __webpack_require__(11)[PROMISE];
-	
-	// statics
-	$export($export.S + $export.F * !USE_NATIVE, PROMISE, {
-	  // 25.4.4.5 Promise.reject(r)
-	  reject: function reject(r) {
-	    var capability = newPromiseCapability(this),
-	        $$reject = capability.reject;
-	    $$reject(r);
-	    return capability.promise;
-	  }
-	});
-	$export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
-	  // 25.4.4.6 Promise.resolve(x)
-	  resolve: function resolve(x) {
-	    // instanceof instead of internal slot check because we should fix it without replacement native Promise core
-	    if (x instanceof $Promise && sameConstructor(x.constructor, this)) return x;
-	    var capability = newPromiseCapability(this),
-	        $$resolve = capability.resolve;
-	    $$resolve(x);
-	    return capability.promise;
-	  }
-	});
-	$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(162)(function (iter) {
-	  $Promise.all(iter)['catch'](empty);
-	})), PROMISE, {
-	  // 25.4.4.1 Promise.all(iterable)
-	  all: function all(iterable) {
-	    var C = this,
-	        capability = newPromiseCapability(C),
-	        resolve = capability.resolve,
-	        reject = capability.reject;
-	    var abrupt = perform(function () {
-	      var values = [],
-	          index = 0,
-	          remaining = 1;
-	      forOf(iterable, false, function (promise) {
-	        var $index = index++,
-	            alreadyCalled = false;
-	        values.push(undefined);
-	        remaining++;
-	        C.resolve(promise).then(function (value) {
-	          if (alreadyCalled) return;
-	          alreadyCalled = true;
-	          values[$index] = value;
-	          --remaining || resolve(values);
-	        }, reject);
-	      });
-	      --remaining || resolve(values);
-	    });
-	    if (abrupt) reject(abrupt.error);
-	    return capability.promise;
-	  },
-	  // 25.4.4.4 Promise.race(iterable)
-	  race: function race(iterable) {
-	    var C = this,
-	        capability = newPromiseCapability(C),
-	        reject = capability.reject;
-	    var abrupt = perform(function () {
-	      forOf(iterable, false, function (promise) {
-	        C.resolve(promise).then(capability.resolve, reject);
-	      });
-	    });
-	    if (abrupt) reject(abrupt.error);
-	    return capability.promise;
-	  }
-	});
-
-/***/ },
-/* 158 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	// 7.3.20 SpeciesConstructor(O, defaultConstructor)
-	var anObject = __webpack_require__(16),
-	    aFunction = __webpack_require__(13),
-	    SPECIES = __webpack_require__(61)('species');
-	module.exports = function (O, D) {
-	  var C = anObject(O).constructor,
-	      S;
-	  return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? D : aFunction(S);
-	};
-
-/***/ },
-/* 159 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var ctx = __webpack_require__(12),
-	    invoke = __webpack_require__(160),
-	    html = __webpack_require__(59),
-	    cel = __webpack_require__(21),
-	    global = __webpack_require__(10),
-	    process = global.process,
-	    setTask = global.setImmediate,
-	    clearTask = global.clearImmediate,
-	    MessageChannel = global.MessageChannel,
-	    counter = 0,
-	    queue = {},
-	    ONREADYSTATECHANGE = 'onreadystatechange',
-	    defer,
-	    channel,
-	    port;
-	var run = function run() {
-	  var id = +this;
-	  if (queue.hasOwnProperty(id)) {
-	    var fn = queue[id];
-	    delete queue[id];
-	    fn();
-	  }
-	};
-	var listener = function listener(event) {
-	  run.call(event.data);
-	};
-	// Node.js 0.9+ & IE10+ has setImmediate, otherwise:
-	if (!setTask || !clearTask) {
-	  setTask = function setImmediate(fn) {
-	    var args = [],
-	        i = 1;
-	    while (arguments.length > i) {
-	      args.push(arguments[i++]);
-	    }queue[++counter] = function () {
-	      invoke(typeof fn == 'function' ? fn : Function(fn), args);
-	    };
-	    defer(counter);
-	    return counter;
-	  };
-	  clearTask = function clearImmediate(id) {
-	    delete queue[id];
-	  };
-	  // Node.js 0.8-
-	  if (__webpack_require__(54)(process) == 'process') {
-	    defer = function defer(id) {
-	      process.nextTick(ctx(run, id, 1));
-	    };
-	    // Browsers with MessageChannel, includes WebWorkers
-	  } else if (MessageChannel) {
-	    channel = new MessageChannel();
-	    port = channel.port2;
-	    channel.port1.onmessage = listener;
-	    defer = ctx(port.postMessage, port, 1);
-	    // Browsers with postMessage, skip WebWorkers
-	    // IE8 has postMessage, but it's sync & typeof its postMessage is 'object'
-	  } else if (global.addEventListener && typeof postMessage == 'function' && !global.importScripts) {
-	    defer = function defer(id) {
-	      global.postMessage(id + '', '*');
-	    };
-	    global.addEventListener('message', listener, false);
-	    // IE8-
-	  } else if (ONREADYSTATECHANGE in cel('script')) {
-	    defer = function defer(id) {
-	      html.appendChild(cel('script'))[ONREADYSTATECHANGE] = function () {
-	        html.removeChild(this);
-	        run.call(id);
-	      };
-	    };
-	    // Rest old browsers
-	  } else {
-	    defer = function defer(id) {
-	      setTimeout(ctx(run, id, 1), 0);
-	    };
-	  }
-	}
-	module.exports = {
-	  set: setTask,
-	  clear: clearTask
-	};
-
-/***/ },
-/* 160 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	// fast apply, http://jsperf.lnkit.com/fast-apply/5
-	module.exports = function (fn, args, that) {
-	                  var un = that === undefined;
-	                  switch (args.length) {
-	                                    case 0:
-	                                                      return un ? fn() : fn.call(that);
-	                                    case 1:
-	                                                      return un ? fn(args[0]) : fn.call(that, args[0]);
-	                                    case 2:
-	                                                      return un ? fn(args[0], args[1]) : fn.call(that, args[0], args[1]);
-	                                    case 3:
-	                                                      return un ? fn(args[0], args[1], args[2]) : fn.call(that, args[0], args[1], args[2]);
-	                                    case 4:
-	                                                      return un ? fn(args[0], args[1], args[2], args[3]) : fn.call(that, args[0], args[1], args[2], args[3]);
-	                  }return fn.apply(that, args);
-	};
-
-/***/ },
-/* 161 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var global = __webpack_require__(10),
-	    macrotask = __webpack_require__(159).set,
-	    Observer = global.MutationObserver || global.WebKitMutationObserver,
-	    process = global.process,
-	    Promise = global.Promise,
-	    isNode = __webpack_require__(54)(process) == 'process';
-	
-	module.exports = function () {
-	  var head, last, notify;
-	
-	  var flush = function flush() {
-	    var parent, fn;
-	    if (isNode && (parent = process.domain)) parent.exit();
-	    while (head) {
-	      fn = head.fn;
-	      head = head.next;
-	      try {
-	        fn();
-	      } catch (e) {
-	        if (head) notify();else last = undefined;
-	        throw e;
-	      }
-	    }last = undefined;
-	    if (parent) parent.enter();
-	  };
-	
-	  // Node.js
-	  if (isNode) {
-	    notify = function notify() {
-	      process.nextTick(flush);
-	    };
-	    // browsers with MutationObserver
-	  } else if (Observer) {
-	    var toggle = true,
-	        node = document.createTextNode('');
-	    new Observer(flush).observe(node, { characterData: true }); // eslint-disable-line no-new
-	    notify = function notify() {
-	      node.data = toggle = !toggle;
-	    };
-	    // environments with maybe non-completely correct, but existent Promise
-	  } else if (Promise && Promise.resolve) {
-	    var promise = Promise.resolve();
-	    notify = function notify() {
-	      promise.then(flush);
-	    };
-	    // for other environments - macrotask based on:
-	    // - setImmediate
-	    // - MessageChannel
-	    // - window.postMessag
-	    // - onreadystatechange
-	    // - setTimeout
-	  } else {
-	    notify = function notify() {
-	      // strange IE + webpack dev server bug - use .call(global)
-	      macrotask.call(global, flush);
-	    };
-	  }
-	
-	  return function (fn) {
-	    var task = { fn: fn, next: undefined };
-	    if (last) last.next = task;
-	    if (!head) {
-	      head = task;
-	      notify();
-	    }last = task;
-	  };
-	};
-
-/***/ },
-/* 162 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var ITERATOR = __webpack_require__(61)('iterator'),
-	    SAFE_CLOSING = false;
-	
-	try {
-	  var riter = [7][ITERATOR]();
-	  riter['return'] = function () {
-	    SAFE_CLOSING = true;
-	  };
-	  Array.from(riter, function () {
-	    throw 2;
-	  });
-	} catch (e) {/* empty */}
-	
-	module.exports = function (exec, skipClosing) {
-	  if (!skipClosing && !SAFE_CLOSING) return false;
-	  var safe = false;
-	  try {
-	    var arr = [7],
-	        iter = arr[ITERATOR]();
-	    iter.next = function () {
-	      return { done: safe = true };
-	    };
-	    arr[ITERATOR] = function () {
-	      return iter;
-	    };
-	    exec(arr);
-	  } catch (e) {/* empty */}
-	  return safe;
-	};
-
-/***/ },
-/* 163 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _promise = __webpack_require__(155);
-	
-	var _promise2 = _interopRequireDefault(_promise);
-	
-	var _getPrototypeOf = __webpack_require__(25);
-	
-	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
-	
-	var _classCallCheck2 = __webpack_require__(4);
-	
-	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
-	
-	var _createClass2 = __webpack_require__(5);
-	
-	var _createClass3 = _interopRequireDefault(_createClass2);
-	
-	var _possibleConstructorReturn2 = __webpack_require__(36);
-	
-	var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
-	
-	var _get2 = __webpack_require__(117);
-	
-	var _get3 = _interopRequireDefault(_get2);
-	
-	var _inherits2 = __webpack_require__(83);
-	
-	var _inherits3 = _interopRequireDefault(_inherits2);
-	
-	var _loader = __webpack_require__(154);
-	
-	var _loader2 = _interopRequireDefault(_loader);
-	
-	function _interopRequireDefault(obj) {
-	  return obj && obj.__esModule ? obj : { default: obj };
-	}
-	
-	/**
-	 * Gets called if a parameter is missing and the expression
-	 * specifying the default value is evaluated.
-	 * @function
-	 */
-	function throwIfMissing() {
-	  throw new Error('Missing parameter');
-	}
-	
-	var audioContext = void 0;
-	
-	window.AudioContext = window.AudioContext || window.webkitAudioContext;
-	
-	try {
-	  audioContext = new window.AudioContext();
-	} catch (e) {}
-	
-	/**
-	 * AudioBufferLoader
-	 * Promise based implementation of XMLHttpRequest Level 2 for GET method and decode audio data for arraybuffer.
-	 */
-	
-	var AudioBufferLoader = function (_Loader) {
-	  (0, _inherits3.default)(AudioBufferLoader, _Loader);
-	
-	  /**
-	   * Set the responseType to 'arraybuffer' and initialize options.
-	   * @param {string} [responseType="arraybuffer"]
-	   */
-	
-	  function AudioBufferLoader() {
-	    var responseType = arguments.length <= 0 || arguments[0] === undefined ? 'arraybuffer' : arguments[0];
-	    (0, _classCallCheck3.default)(this, AudioBufferLoader);
-	
-	    var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(AudioBufferLoader).call(this, responseType));
-	
-	    _this.options = {
-	      "wrapAroundExtension": 0
-	    };
-	    _this.responseType = responseType;
-	    _this.audioContext = audioContext;
-	    return _this;
-	  }
-	
-	  /**
-	   * Allow to set the audio context that should be used in order to decode
-	   * the file and create the AudioBuffer.
-	   * @param {AudioContext} audioContext
-	   */
-	
-	  (0, _createClass3.default)(AudioBufferLoader, [{
-	    key: 'setAudioContext',
-	    value: function setAudioContext(audioContext) {
-	      this.audioContext = audioContext;
-	    }
-	
-	    /**
-	     * Method for promise audio file loading and decoding.
-	     * @param {(string|string[])} fileURLs - The URL(s) of the audio files to load. Accepts a URL pointing to the file location or an array of URLs.
-	     * @param {{wrapAroundExtension: number}} [options] - Object with a wrapAroundExtension key which set the length, in seconds to be copied from the begining at the end of the returned AudioBuffer
-	     * @returns {Promise}
-	     */
-	
-	  }, {
-	    key: 'load',
-	    value: function load() {
-	      var fileURLs = arguments.length <= 0 || arguments[0] === undefined ? throwIfMissing() : arguments[0];
-	      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-	
-	      this.options = options;
-	      this.options.wrapAroundExtension = this.options.wrapAroundExtension || 0;
-	      return (0, _get3.default)((0, _getPrototypeOf2.default)(AudioBufferLoader.prototype), 'load', this).call(this, fileURLs);
-	    }
-	
-	    /**
-	     * Load a single audio file, decode it in an AudioBuffer, return a Promise
-	     * @private
-	     * @param {string} fileURL - The URL of the audio file location to load.
-	     * @returns {Promise}
-	     */
-	
-	  }, {
-	    key: 'loadOne',
-	    value: function loadOne(fileURL) {
-	      return (0, _get3.default)((0, _getPrototypeOf2.default)(AudioBufferLoader.prototype), 'loadOne', this).call(this, fileURL).then(this.decodeAudioData.bind(this), function (error) {
-	        throw error;
-	      });
-	    }
-	
-	    /**
-	     * Load all audio files at once in a single array, decode them in an array of AudioBuffers, and return a Promise.
-	     * @private
-	     * @param {string[]} fileURLs - The URLs array of the audio files to load.
-	     * @returns {Promise}
-	     */
-	
-	  }, {
-	    key: 'loadAll',
-	    value: function loadAll(fileURLs) {
-	      var _this2 = this;
-	
-	      return (0, _get3.default)((0, _getPrototypeOf2.default)(AudioBufferLoader.prototype), 'loadAll', this).call(this, fileURLs).then(function (arraybuffers) {
-	        return _promise2.default.all(arraybuffers.map(function (arraybuffer) {
-	          return _this2.decodeAudioData.bind(_this2)(arraybuffer);
-	        }));
-	      }, function (error) {
-	        throw error; // TODO: better error handler
-	      });
-	    }
-	
-	    /**
-	     * Decode Audio Data, return a Promise
-	     * @private
-	     * @param {arraybuffer} - The arraybuffer of the loaded audio file to be decoded.
-	     * @returns {Promise}
-	     */
-	
-	  }, {
-	    key: 'decodeAudioData',
-	    value: function decodeAudioData(arraybuffer) {
-	      var _this3 = this;
-	
-	      if (arraybuffer instanceof ArrayBuffer) {
-	        return new _promise2.default(function (resolve, reject) {
-	          _this3.audioContext.decodeAudioData(arraybuffer, // returned audio data array
-	          function (buffer) {
-	            if (_this3.options.wrapAroundExtension === 0) resolve(buffer);else resolve(_this3.__wrapAround(buffer));
-	          }, function (error) {
-	            reject(new Error("DecodeAudioData error"));
-	          });
-	        });
-	      } else {
-	        return new _promise2.default(function (resolve, reject) {
-	          resolve(arraybuffer);
-	        });
-	      }
-	    }
-	
-	    /**
-	     * WrapAround, copy the begining input buffer to the end of an output buffer
-	     * @private
-	     * @param {arraybuffer} inBuffer {arraybuffer} - The input buffer
-	     * @returns {arraybuffer} - The processed buffer (with frame copied from the begining to the end)
-	     */
-	
-	  }, {
-	    key: '__wrapAround',
-	    value: function __wrapAround(inBuffer) {
-	      var length = inBuffer.length + this.options.wrapAroundExtension * inBuffer.sampleRate;
-	
-	      var outBuffer = this.audioContext.createBuffer(inBuffer.numberOfChannels, length, inBuffer.sampleRate);
-	      var arrayChData, arrayOutChData;
-	
-	      for (var channel = 0; channel < inBuffer.numberOfChannels; channel++) {
-	        arrayChData = inBuffer.getChannelData(channel);
-	        arrayOutChData = outBuffer.getChannelData(channel);
-	
-	        arrayOutChData.forEach(function (sample, index) {
-	          if (index < inBuffer.length) arrayOutChData[index] = arrayChData[index];else arrayOutChData[index] = arrayChData[index - inBuffer.length];
-	        });
-	      }
-	
-	      return outBuffer;
-	    }
-	  }]);
-	  return AudioBufferLoader;
-	}(_loader2.default);
-
-	exports.default = AudioBufferLoader;
-
-/***/ },
-/* 164 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _getPrototypeOf = __webpack_require__(25);
-	
-	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
-	
-	var _classCallCheck2 = __webpack_require__(4);
-	
-	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
-	
-	var _possibleConstructorReturn2 = __webpack_require__(36);
-	
-	var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
-	
-	var _inherits2 = __webpack_require__(83);
-	
-	var _inherits3 = _interopRequireDefault(_inherits2);
-	
-	var _audioBufferLoader = __webpack_require__(163);
-	
-	var _audioBufferLoader2 = _interopRequireDefault(_audioBufferLoader);
-	
-	function _interopRequireDefault(obj) {
-	  return obj && obj.__esModule ? obj : { default: obj };
-	}
-	
-	/**
-	 * SuperLoader
-	 * Helper to load multiple type of files, and get them in their useful type, json for json files, AudioBuffer for audio files.
-	 */
-	
-	var SuperLoader = function (_AudioBufferLoader) {
-	  (0, _inherits3.default)(SuperLoader, _AudioBufferLoader);
-	
-	  /**
-	   * Use composition to setup appropriate file loaders
-	   */
-	
-	  function SuperLoader() {
-	    (0, _classCallCheck3.default)(this, SuperLoader);
-	    return (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(SuperLoader).call(this, null));
-	    // bypass AudioBufferLoader constructor. This is bad but it works.
-	  }
-	
-	  return SuperLoader;
-	}(_audioBufferLoader2.default);
-
-	exports.default = SuperLoader;
 
 /***/ },
 /* 165 */
