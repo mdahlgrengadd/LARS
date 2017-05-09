@@ -8,7 +8,7 @@ export default class BackendPlugin {
             name: 'backend',
             deferInit: params && params.deferInit ? params.deferInit : false,
             params: params,
-            instance: BackendPlugin,
+            instance: BackendPlugin
             /*staticProps: {
                 Backend: MyWebAudio
             }*/
@@ -24,8 +24,7 @@ export default class BackendPlugin {
 
         this.setupPluginDOM(ws);
 
-        this.wavesurfer.on('ready', function() {
-            console.log("READY");
+        this.wavesurfer.on('ready', () => {
             console.log(params);
             if (params.transport) {
                 ws.backend.setMasterTransport(params.transport);
@@ -37,7 +36,7 @@ export default class BackendPlugin {
             }
 
             if (params.json) {
-                ws.backend.loadFromJson(params.json)
+                ws.backend.loadFromJson(params.json);
             }
 
         });
@@ -54,42 +53,6 @@ export default class BackendPlugin {
     }
 
     setupPluginDOM(ws) {
-
-        // 1. Create the button
-        var button = document.createElement("button");
-        button.innerHTML = "Change Chord";
-
-        // 2. Append somewhere
-        var body = document.getElementsByTagName("body")[0];
-        body.appendChild(button);
-
-        // 3. Add event handler
-        button.addEventListener("click", function() {
-            ws.backend.switchEngine();
-        });
-
-
-
-        /*        let container = "sliders";
-                // create a new div element 
-                // and give it some content 
-
-                var slider = document.createElement("input");
-                slider.type = "range";
-                slider.min = 50;
-                slider.max = 200;
-                slider.value = 100;
-
-                slider.oninput = function() {
-                    var zoomLevel = Number(slider.value) / 100;
-                    //globalPlayControl.speed = zoomLevel * 2;
-                    ws.backend.setPlaybackRate(zoomLevel * 2);
-                };
-
-
-                // add the newly created element and its content into the DOM 
-                var currentDiv = document.getElementById(container);
-                currentDiv.appendChild(slider);*/
 
     }
 

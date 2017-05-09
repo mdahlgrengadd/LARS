@@ -11,12 +11,10 @@ const FINISHED = 'finished';
 
 const BUFFER_LENGTH = 12;
 
-Number.prototype.mod = function(n) {
-    return ((this % n) + n) % n;
-};
+const Modulo = (num, mod) => ((num % mod) + mod) % mod;
 
-// Allows individual looping and speed control for 
-// instance if several segment engines have been added to 
+// Allows individual looping and speed control for
+// instance if several segment engines have been added to
 // the same global transport.
 const _WRAP_SEGMENTENGINE_IN_PLAYCONTROL = false;
 
@@ -25,10 +23,13 @@ export default class MyWebAudio extends WebAudio {
         super(params);
         //console.log("MyWebAudio params: ");
         //console.log(params);
-        if (params.transport)
+        if (params.transport) {
             this.transport = params.transport;
-        if (params.playctrl)
+        }
+
+        if (params.playctrl) {
             this.playControl = params.playctrl;
+        }
 
         this.startOffset = 0;
         this.currentBufferSegment = 0;
@@ -37,7 +38,7 @@ export default class MyWebAudio extends WebAudio {
 
     setupSegmentPlayer(segmentDescriptions) {
         if (!this.buffer) {
-            console.log("No buffer, is wavesurfer ready?")
+            console.log('No buffer, is wavesurfer ready?');
             return;
         }
 
@@ -45,27 +46,26 @@ export default class MyWebAudio extends WebAudio {
         // create one segment of the whole audio buffer.
         if (!segmentDescriptions) {
             segmentDescriptions = {
-                "I": [0],
-                "duration": [this.getDuration()],
-                "offset": [0],
-                "loudness": [0]
-            }
+                'I': [0],
+                'duration': [this.getDuration()],
+                'offset': [0],
+                'loudness': [0]
+            };
 
         }
-        console.log("segments: " + JSON.stringify(segmentDescriptions))
 
         // Pick a segment from the description
-        let progressions = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+        const progressions = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
         //let progressions = ['I',  'IV', 'V'];
         this.Engines = [];
-        for (let _progression of progressions) {
-            let _chord = segmentDescriptions[_progression];
-            let loopstart = _chord[0];
-            let loopend = _chord[_chord.length - 1];
+        for (const _progression of progressions) {
+            const _chord = segmentDescriptions[_progression];
+            const loopstart = _chord[0];
+            const loopend = _chord[_chord.length - 1];
 
-            let subbuf = util.slice(this.source.buffer, loopstart * 44100, loopend * 44100);
+            const subbuf = util.slice(this.source.buffer, loopstart * 44100, loopend * 44100);
 
-            let segEng = new wavesAudio.SegmentEngine({
+            const segEng = new wavesAudio.SegmentEngine({
                 buffer: subbuf,
                 positionArray: segmentDescriptions.I,
                 durationArray: segmentDescriptions.duration,
@@ -75,7 +75,7 @@ export default class MyWebAudio extends WebAudio {
                 releaseRel: 0.005,
                 resampling: 0,
                 wrapAroundExtension: 0,
-                cyclic: true,
+                cyclic: true
 
             });
             segEng.connect(this.analyser);
@@ -99,7 +99,7 @@ export default class MyWebAudio extends WebAudio {
     setMasterTransport(master) {
 
         this.transport = master;
-        console.log("new master transport:");
+        console.log('new master transport:');
         console.log(master);
 
     }
@@ -107,18 +107,18 @@ export default class MyWebAudio extends WebAudio {
     setMasterPlayControl(control) {
 
         this.playControl = control;
-        console.log("new master play control:");
+        console.log('new master play control:');
         console.log(control);
     }
 
     switchEngine() {
-        let idx = Math.floor(Math.random() * this.Engines.length);
-        let item = this.Engines[idx];
+        const idx = Math.floor(Math.random() * this.Engines.length);
+        const item = this.Engines[idx];
         this.currentBufferSegment = idx;
 
         this._wrapPlayer.set(item);
         this.currentEngine = item;
-        this.startOffset = idx * BUFFER_LENGTH; 
+        this.startOffset = idx * BUFFER_LENGTH;
     }
 
     getAudioContext() {
@@ -180,7 +180,7 @@ export default class MyWebAudio extends WebAudio {
                         scheduler.remove(this.positionDisplay);
                         this.switchEngine();
                         scheduler.add(this.positionDisplay);
-                        console.log("trigger")
+                        console.log('trigger');
                         _flag = true;
                     }
                 } else {
@@ -206,15 +206,15 @@ export default class MyWebAudio extends WebAudio {
 
     getPlayedTime() {
 
-        let len = this.Engines[this.currentBufferSegment].bufferDuration;
+        const len = this.Engines[this.currentBufferSegment].bufferDuration;
 
-        return this.startOffset + (this._wrapPlayer.currentPosition).mod(len);
+        return this.startOffset + Modulo(this._wrapPlayer.currentPosition, len);
 
     }
     play(start, end) {
-        if (!this.buffer) {
+        /*if (!this.buffer) {
             return;
-        }
+        }*/
     }
 
     pause() {}
