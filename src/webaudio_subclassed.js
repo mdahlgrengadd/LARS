@@ -1,5 +1,5 @@
-import WebAudio from '../node_modules/wavesurfer.js/src/webaudio';
 import * as wavesAudio from 'waves-audio';
+import WebAudio from '../node_modules/wavesurfer.js/src/webaudio';
 
 const PLAYING = 'playing';
 const PAUSED = 'paused';
@@ -12,7 +12,7 @@ export default class MyWebAudio extends WebAudio {
 
     getAudioContext() {
         if (!window.WaveSurferAudioContext) {
-            
+
             window.WaveSurferAudioContext = wavesAudio.audioContext;
         }
 
@@ -20,10 +20,10 @@ export default class MyWebAudio extends WebAudio {
     }
 
     addOnAudioProcess() {
-        var my = this;
+        const my = this;
 
         this.scriptNode.onaudioprocess = function(e) {
-            var time = my.getCurrentTime();
+            const time = my.getCurrentTime();
 
             if (time >= my.getDuration() || time < 0) {
                 my.setState(FINISHED);
@@ -44,29 +44,29 @@ export default class MyWebAudio extends WebAudio {
     }
 
     createSource() {
-        var self = this;
+        const self = this;
         /*
                 function setupSegmentPlayer() {
 
-                    var audioContext = wavesAudio.audioContext;
-                    var loader = new self.wavesLoaders.SuperLoader(); // instantiate loader
+                    let audioContext = wavesAudio.audioContext;
+                    let loader = new self.wavesLoaders.SuperLoader(); // instantiate loader
 
-                    var assets = [
+                    let assets = [
                         "./assets/3_4_Guitar30bpm96khz32bit.wav",
                         "./assets/3_4_guitar-loop.json"
                     ];
 
                     // load audio and marker files
                     loader.load(assets).then(function(loaded) {
-                        var audioBuffer = loaded[0];
-                        var markerBuffer = loaded[1];
+                        let audioBuffer = loaded[0];
+                        let markerBuffer = loaded[1];
 
                         self.scheduledSegmentEngine.connect(WaveSurfer.WebAudio.audioContext.destination);
 
                         // create transport with play control and transported segment engine
-                        var _chord = markerBuffer.VI;
-                        var loopstart = _chord[0];
-                        var loopend = _chord[_chord.length - 1];
+                        let _chord = markerBuffer.VI;
+                        let loopstart = _chord[0];
+                        let loopend = _chord[_chord.length - 1];
 
                         self.transportedSegmentEngine = new wavesAudio.SegmentEngine({
                             buffer: audioBuffer,
@@ -84,7 +84,7 @@ export default class MyWebAudio extends WebAudio {
                         //self.transport.add(self.transportedSegmentEngine);
 
 
-                        var playControl = new wavesAudio.PlayControl(self.transportedSegmentEngine);
+                        let playControl = new wavesAudio.PlayControl(self.transportedSegmentEngine);
 
                         console.log(loopend);
                         playControl.setLoopBoundaries(loopstart, loopend);
@@ -93,7 +93,6 @@ export default class MyWebAudio extends WebAudio {
 
                         playControl.speed = 1.0 * 2.0;
                         playControl.seek(loopstart);
-                        
                         playControl.start();
                     });
 
@@ -110,6 +109,9 @@ export default class MyWebAudio extends WebAudio {
                     self.metronome.connect(WaveSurfer.WebAudio.audioContext.destination);
                 }
         */
+        /**
+         * Setup granular
+         */
         function setupGranular() {
 
             // get scheduler and create scheduled granular engine
@@ -160,17 +162,18 @@ export default class MyWebAudio extends WebAudio {
 
         //this.transport.add(this.metronome);
 
-        var scheduler = wavesAudio.getScheduler();
+        const scheduler = wavesAudio.getScheduler();
         //scheduler.add(this.metronome);
 
 
         // create play control
         this.playControl = new wavesAudio.PlayControl(this.transport);
+        this.playControl.speed = 0.5;
 
     }
 
     seekTo(start, end) {
-        var doLoop = true;
+        let doLoop = true;
 
         if (start == null) {
             start = this.getCurrentTime();
@@ -182,17 +185,17 @@ export default class MyWebAudio extends WebAudio {
             end = this.getDuration();
             doLoop = false;
         }
-        //this.startPosition = start; 
+        //this.startPosition = start;
         this.startPosition = 0;
         this.lastPlay = this.ac.currentTime;
 
         if (this.state === this.states[FINISHED]) {
             this.setState(PAUSED);
         }
-        // When loop is true, an undesired behavior makes seeking 
-        // beyond loopEnd change the position so that it fits inside 
+        // When loop is true, an undesired behavior makes seeking
+        // beyond loopEnd change the position so that it fits inside
         // loop region. This ugly fix turns off looping when seeking
-        // outside loop region. (Also when playing in reverse (speed < 0), 
+        // outside loop region. (Also when playing in reverse (speed < 0),
         // the same happens at loopStart).
         if (!doLoop) {
             this.playControl.setLoopBoundaries(0, this.getDuration());
@@ -206,7 +209,7 @@ export default class MyWebAudio extends WebAudio {
 
         this.scheduledPause = end;
 
-        //console.log("start: " + start + " end: " + end);   
+        //console.log("start: " + start + " end: " + end);
 
         return {
             start: start,
@@ -227,7 +230,7 @@ export default class MyWebAudio extends WebAudio {
         // need to re-create source on each playback
         //this.createSource();
 
-        var adjustedTime = this.seekTo(start, end);
+        const adjustedTime = this.seekTo(start, end);
 
         start = adjustedTime.start;
         end = adjustedTime.end;

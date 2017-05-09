@@ -1,4 +1,4 @@
-import MyWebAudio from './webaudio_subclassed';
+import MyWebAudio from './webaudio_segment_player';
 
 export default class BackendPlugin {
 

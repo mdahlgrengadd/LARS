@@ -29,21 +29,30 @@
             </div>
 
             <div id="demo">
-                <div id="waveform">
+                <div id="waveform1">
                     <!-- Here be the waveform -->
                 </div>
-
+                <div id="waveform2">
+                    <!-- Here be the waveform -->
+                </div>
                 <div class="controls">
                     <div class="row">
                         <div class="col-sm-7">
-                            <button class="btn btn-primary" data-action="play">
+                            <button class="btn btn-primary" data-action="play1">
                                 <i class="glyphicon glyphicon-play"></i>
                                 Play
                                 /
                                 <i class="glyphicon glyphicon-pause"></i>
                                 Pause
                             </button>
+                                                        <button class="btn btn-primary" data-action="stop1">
+                                <i class="glyphicon glyphicon-stop"></i>
+                                Stop
+                            </button>
                         </div>
+                            <div class="col-xs-10">
+      <input id="slider" type="range" min="50" max="200" value="100" style="width: 100%" />
+
                     </div>
                 </div>
             </div>
