@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loader = new wavesLoaders.SuperLoader(); // instantiate loader
 
     const assets = [
-        '/assets/footstomps.json',
-        '/assets/3_4_guitar-loop.json'
+        './assets/footstomps.json',
+        './assets/3_4_guitar-loop.json'
     ];
 
     // load audio and marker files
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             ]
         });
-        wavesurfer1.load('../assets/3_4_Guitar30bpm96khz32bit.wav');
+        wavesurfer1.load('./assets/3_4_Guitar30bpm96khz32bit.wav');
 
 
         wavesurfer2 = WaveSurfer.create({
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ]
         });
 
-        wavesurfer2.load('../assets/footstomps.wav');
+        wavesurfer2.load('./assets/footstomps.wav');
 
         const slider = document.querySelector('#slider');
 
