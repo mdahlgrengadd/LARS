@@ -58,11 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const slider = document.querySelector('#slider');
 
         slider.oninput = () => {
-            const zoomLevel = Number(slider.value) / 100.0;
-            globalPlayControl.speed = zoomLevel * 2;
+            const playBackRate = Number(slider.value) / 100.0;
+            globalPlayControl.speed = playBackRate * 2;
         };
 
         globalPlayControl.speed = 1.3 * 2;
+        slider.value = globalPlayControl.speed * 100 / 2;
 
         button1.addEventListener('click', () => {
             globalPlayControl.start();

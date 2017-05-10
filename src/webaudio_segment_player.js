@@ -8,6 +8,7 @@ const util = require('audio-buffer-utils');
 const PLAYING = 'playing';
 const PAUSED = 'paused';
 const FINISHED = 'finished';
+const progressions = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 
 const BUFFER_LENGTH = 12;
 
@@ -55,7 +56,6 @@ export default class MyWebAudio extends WebAudio {
         }
 
         // Pick a segment from the description
-        const progressions = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
         //let progressions = ['I',  'IV', 'V'];
         this.Engines = [];
         for (const _progression of progressions) {
@@ -67,7 +67,7 @@ export default class MyWebAudio extends WebAudio {
 
             const segEng = new wavesAudio.SegmentEngine({
                 buffer: subbuf,
-                positionArray: segmentDescriptions.I,
+                positionArray: segmentDescriptions.I, //Since we sliced buffer, all positions start from 0.
                 durationArray: segmentDescriptions.duration,
                 offsetArray: segmentDescriptions.offset,
                 durationRel: 0.95,
@@ -83,6 +83,8 @@ export default class MyWebAudio extends WebAudio {
         }
 
         this._wrapPlayer = new wavesAudio.PlayControl(this.Engines[0]);
+        this._wrapPlayer.loop = false;
+
         this.currentEngine = this.Engines[0];
         this.transport.add(this._wrapPlayer);
 
@@ -118,7 +120,7 @@ export default class MyWebAudio extends WebAudio {
 
         this._wrapPlayer.set(item);
         this.currentEngine = item;
-        this.startOffset = idx * BUFFER_LENGTH;
+        this.startOffset = this.segmentDescriptions[progressions[idx]][0];
     }
 
     getAudioContext() {
@@ -172,10 +174,12 @@ export default class MyWebAudio extends WebAudio {
         this.positionDisplay.period = 0.05;
 
         let _flag = false;
+
         this.positionDisplay.advanceTime = (time) => {
+            console.log(this.currentEngine.segmentIndex);
             this.fireEvent('audioprocess', time);
             if (this.currentEngine) {
-                if (this.currentEngine.segmentIndex > 8) {
+                if (this.currentEngine.segmentIndex > 10) {
                     if (!_flag) {
                         scheduler.remove(this.positionDisplay);
                         this.switchEngine();

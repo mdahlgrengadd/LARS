@@ -85,8 +85,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	// 'use strict';
 	
 	var wavesurfer2 = {};
-	var globalTransporter = new wavesAudio.Transport();
-	var globalPlayControl = new wavesAudio.PlayControl(globalTransporter);
+	window.globalTransporter = new wavesAudio.Transport();
+	window.globalPlayControl = new wavesAudio.PlayControl(globalTransporter);
 	// Init & load audio file
 	document.addEventListener('DOMContentLoaded', function () {
 	    var button1 = document.querySelector('[data-action="play1"]');
@@ -125,11 +125,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var slider = document.querySelector('#slider');
 	
 	        slider.oninput = function () {
-	            var zoomLevel = Number(slider.value) / 100.0;
-	            globalPlayControl.speed = zoomLevel * 2;
+	            var playBackRate = Number(slider.value) / 100.0;
+	            globalPlayControl.speed = playBackRate * 2;
 	        };
 	
 	        globalPlayControl.speed = 1.3 * 2;
+	        slider.value = globalPlayControl.speed * 100 / 2;
 	
 	        button1.addEventListener('click', function () {
 	            globalPlayControl.start();
@@ -11299,7 +11300,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }, {
 	        key: 'setupPluginDOM',
-	        value: function setupPluginDOM(ws) {}
+	        value: function setupPluginDOM(ws) {
+	
+	            // 1. Create the button
+	            var button = document.createElement('button');
+	            button.innerHTML = 'Change Chord';
+	
+	            // 2. Append somewhere
+	            var body = document.getElementsByTagName('body')[0];
+	            body.appendChild(button);
+	
+	            // 3. Add event handler
+	            button.addEventListener('click', function () {
+	                ws.backend.switchEngine();
+	            });
+	
+	            /*        let container = "sliders";
+	                    // create a new div element 
+	                    // and give it some content 
+	                     var slider = document.createElement("input");
+	                    slider.type = "range";
+	                    slider.min = 50;
+	                    slider.max = 200;
+	                    slider.value = 100;
+	                     slider.oninput = function() {
+	                        var zoomLevel = Number(slider.value) / 100;
+	                        //globalPlayControl.speed = zoomLevel * 2;
+	                        ws.backend.setPlaybackRate(zoomLevel * 2);
+	                    };
+	                      // add the newly created element and its content into the DOM 
+	                    var currentDiv = document.getElementById(container);
+	                    currentDiv.appendChild(slider);*/
+	        }
 	    }]);
 	
 	    return BackendPlugin;
@@ -11349,6 +11381,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var PLAYING = 'playing';
 	var PAUSED = 'paused';
 	var FINISHED = 'finished';
+	var progressions = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 	
 	var BUFFER_LENGTH = 12;
 	
@@ -11405,7 +11438,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	
 	            // Pick a segment from the description
-	            var progressions = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 	            //let progressions = ['I',  'IV', 'V'];
 	            this.Engines = [];
 	            var _iteratorNormalCompletion = true;
@@ -11424,7 +11456,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	                    var segEng = new wavesAudio.SegmentEngine({
 	                        buffer: subbuf,
-	                        positionArray: segmentDescriptions.I,
+	                        positionArray: segmentDescriptions.I, //Since we sliced buffer, all positions start from 0.
 	                        durationArray: segmentDescriptions.duration,
 	                        offsetArray: segmentDescriptions.offset,
 	                        durationRel: 0.95,
@@ -11454,6 +11486,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	
 	            this._wrapPlayer = new wavesAudio.PlayControl(this.Engines[0]);
+	            this._wrapPlayer.loop = false;
+	
 	            this.currentEngine = this.Engines[0];
 	            this.transport.add(this._wrapPlayer);
 	
@@ -11491,7 +11525,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	            this._wrapPlayer.set(item);
 	            this.currentEngine = item;
-	            this.startOffset = idx * BUFFER_LENGTH;
+	            this.startOffset = this.segmentDescriptions[progressions[idx]][0];
 	        }
 	    }, {
 	        key: 'getAudioContext',
@@ -11548,10 +11582,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.positionDisplay.period = 0.05;
 	
 	            var _flag = false;
+	
 	            this.positionDisplay.advanceTime = function (time) {
+	                console.log(_this2.currentEngine.segmentIndex);
 	                _this2.fireEvent('audioprocess', time);
 	                if (_this2.currentEngine) {
-	                    if (_this2.currentEngine.segmentIndex > 8) {
+	                    if (_this2.currentEngine.segmentIndex > 10) {
 	                        if (!_flag) {
 	                            scheduler.remove(_this2.positionDisplay);
 	                            _this2.switchEngine();
