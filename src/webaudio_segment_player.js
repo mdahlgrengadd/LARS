@@ -175,11 +175,15 @@ export default class MyWebAudio extends WebAudio {
 
         let _flag = false;
 
+
+
         this.positionDisplay.advanceTime = (time) => {
+            const MAX_SEGMENT = this.segmentDescriptions['I'].length;
+
             //console.log(this.currentEngine.segmentIndex);
             this.fireEvent('audioprocess', time);
             if (this.currentEngine) {
-                if (this.currentEngine.segmentIndex > 10) {
+                if (this.currentEngine.segmentIndex == MAX_SEGMENT-1) {
                     if (!_flag) {
                         scheduler.remove(this.positionDisplay);
                         this.switchEngine();

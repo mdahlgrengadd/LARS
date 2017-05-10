@@ -10,6 +10,7 @@ import SegmentBackend from './backend_segment_player';
 // Create an instance
 let wavesurfer1 = {};
 let wavesurfer2 = {};
+let wavesurfer3 = {};
 const globalTransporter = new wavesAudio.Transport();
 const globalPlayControl = new wavesAudio.PlayControl(globalTransporter);
 // Init & load audio file
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const assets = [
         './assets/footstomps.json',
+        './assets/piano.json',
         './assets/3_4_guitar-loop.json'
     ];
 
@@ -39,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             ]
         });
-        wavesurfer1.load('./assets/3_4_Guitar30bpm96khz32bit.wav');
+        wavesurfer1.load('./assets/Piano30bpm.wav');
 
 
         wavesurfer2 = WaveSurfer.create({
@@ -54,6 +56,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         wavesurfer2.load('./assets/footstomps.wav');
+        /*
+        wavesurfer3 = WaveSurfer.create({
+            container: document.querySelector('#waveform2'),
+            plugins: [
+                SegmentBackend.create({
+                    transport: globalTransporter,
+                    playctrl: globalPlayControl,
+                    json: jsonfile[2]
+                })
+            ]
+        });
+
+        wavesurfer3.load('./assets/3_4_Guitar30bpm96khz32bit.wav');*/
 
         const slider = document.querySelector('#slider');
 

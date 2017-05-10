@@ -85,6 +85,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// 'use strict';
 	
 	var wavesurfer2 = {};
+	var wavesurfer3 = {};
 	var globalTransporter = new wavesAudio.Transport();
 	var globalPlayControl = new wavesAudio.PlayControl(globalTransporter);
 	// Init & load audio file
@@ -94,7 +95,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    var loader = new wavesLoaders.SuperLoader(); // instantiate loader
 	
-	    var assets = ['./assets/footstomps.json', './assets/3_4_guitar-loop.json'];
+	    var assets = ['./assets/footstomps.json', './assets/piano.json', './assets/3_4_guitar-loop.json'];
 	
 	    // load audio and marker files
 	    loader.load(assets).then(function (jsonfile) {
@@ -109,7 +110,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                json: jsonfile[1]
 	            })]
 	        });
-	        wavesurfer1.load('./assets/3_4_Guitar30bpm96khz32bit.wav');
+	        wavesurfer1.load('./assets/Piano30bpm.wav');
 	
 	        wavesurfer2 = _wavesurfer2.default.create({
 	            container: document.querySelector('#waveform2'),
@@ -121,6 +122,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	
 	        wavesurfer2.load('./assets/footstomps.wav');
+	        /*
+	        wavesurfer3 = WaveSurfer.create({
+	            container: document.querySelector('#waveform2'),
+	            plugins: [
+	                SegmentBackend.create({
+	                    transport: globalTransporter,
+	                    playctrl: globalPlayControl,
+	                    json: jsonfile[2]
+	                })
+	            ]
+	        });
+	         wavesurfer3.load('./assets/3_4_Guitar30bpm96khz32bit.wav');*/
 	
 	        var slider = document.querySelector('#slider');
 	
@@ -11584,10 +11597,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var _flag = false;
 	
 	            this.positionDisplay.advanceTime = function (time) {
+	                var MAX_SEGMENT = _this2.segmentDescriptions['I'].length;
+	
 	                //console.log(this.currentEngine.segmentIndex);
 	                _this2.fireEvent('audioprocess', time);
 	                if (_this2.currentEngine) {
-	                    if (_this2.currentEngine.segmentIndex > 10) {
+	                    if (_this2.currentEngine.segmentIndex == MAX_SEGMENT - 1) {
 	                        if (!_flag) {
 	                            scheduler.remove(_this2.positionDisplay);
 	                            _this2.switchEngine();
