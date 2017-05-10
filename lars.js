@@ -85,8 +85,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	// 'use strict';
 	
 	var wavesurfer2 = {};
-	window.globalTransporter = new wavesAudio.Transport();
-	window.globalPlayControl = new wavesAudio.PlayControl(globalTransporter);
+	var globalTransporter = new wavesAudio.Transport();
+	var globalPlayControl = new wavesAudio.PlayControl(globalTransporter);
 	// Init & load audio file
 	document.addEventListener('DOMContentLoaded', function () {
 	    var button1 = document.querySelector('[data-action="play1"]');
@@ -11301,23 +11301,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: 'setupPluginDOM',
 	        value: function setupPluginDOM(ws) {
-	
+	            /*
 	            // 1. Create the button
-	            var button = document.createElement('button');
+	            const button = document.createElement('button');
 	            button.innerHTML = 'Change Chord';
-	
-	            // 2. Append somewhere
-	            var body = document.getElementsByTagName('body')[0];
+	             // 2. Append somewhere
+	            const body = document.getElementsByTagName('body')[0];
 	            body.appendChild(button);
-	
-	            // 3. Add event handler
-	            button.addEventListener('click', function () {
+	             // 3. Add event handler
+	            button.addEventListener('click', () => {
 	                ws.backend.switchEngine();
 	            });
+	             */
 	
 	            /*        let container = "sliders";
-	                    // create a new div element 
-	                    // and give it some content 
+	                    // create a new div element
+	                    // and give it some content
 	                     var slider = document.createElement("input");
 	                    slider.type = "range";
 	                    slider.min = 50;
@@ -11328,9 +11327,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        //globalPlayControl.speed = zoomLevel * 2;
 	                        ws.backend.setPlaybackRate(zoomLevel * 2);
 	                    };
-	                      // add the newly created element and its content into the DOM 
+	                      // add the newly created element and its content into the DOM
 	                    var currentDiv = document.getElementById(container);
 	                    currentDiv.appendChild(slider);*/
+	
 	        }
 	    }]);
 	
@@ -11584,7 +11584,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var _flag = false;
 	
 	            this.positionDisplay.advanceTime = function (time) {
-	                console.log(_this2.currentEngine.segmentIndex);
+	                //console.log(this.currentEngine.segmentIndex);
 	                _this2.fireEvent('audioprocess', time);
 	                if (_this2.currentEngine) {
 	                    if (_this2.currentEngine.segmentIndex > 10) {

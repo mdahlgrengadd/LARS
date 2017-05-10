@@ -176,7 +176,7 @@ export default class MyWebAudio extends WebAudio {
         let _flag = false;
 
         this.positionDisplay.advanceTime = (time) => {
-            console.log(this.currentEngine.segmentIndex);
+            //console.log(this.currentEngine.segmentIndex);
             this.fireEvent('audioprocess', time);
             if (this.currentEngine) {
                 if (this.currentEngine.segmentIndex > 10) {

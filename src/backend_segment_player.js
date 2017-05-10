@@ -70,8 +70,8 @@ export default class BackendPlugin {
         */
 
         /*        let container = "sliders";
-                // create a new div element 
-                // and give it some content 
+                // create a new div element
+                // and give it some content
 
                 var slider = document.createElement("input");
                 slider.type = "range";
@@ -86,7 +86,7 @@ export default class BackendPlugin {
                 };
 
 
-                // add the newly created element and its content into the DOM 
+                // add the newly created element and its content into the DOM
                 var currentDiv = document.getElementById(container);
                 currentDiv.appendChild(slider);*/
 
