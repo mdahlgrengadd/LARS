@@ -34,5 +34,6 @@ $ npm run build
 ### Insipiration
 - [https://github.com/RVirmoors/RVdtw-](https://github.com/RVirmoors/RVdtw-)
 - [MySong: Automatic Accompaniment for Vocal Melodies](https://www.youtube.com/watch?v=Lud6_I04OkQ)
+- [Viterbi_algorithm (mentioned in Mysong Youtube video)](https://en.wikipedia.org/wiki/Viterbi_algorithm)
 - [XMURE](https://www.youtube.com/watch?v=xp-81IKm-Tg)
 - [Folk Music Classification Using Hidden Markov Models](https://www.rose-hulman.edu/~shibberu/MA490/Chai.pdf)
