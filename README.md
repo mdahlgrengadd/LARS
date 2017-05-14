@@ -31,4 +31,6 @@ $ npm run test
 $ npm run build
 ```
 
-
+### Insipiration
+[MySong: Automatic Accompaniment for Vocal Melodies(]https://www.youtube.com/watch?v=Lud6_I04OkQ)
+[XMURE]https://www.youtube.com/watch?v=xp-81IKm-Tg
