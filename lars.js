@@ -125,13 +125,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                //console.log(globalTransportedEngines);
 	                var rand = Math.floor(Math.random() * 6);
 	                var transportedObject = globalTransportedEngines[1];
-	                transportedObject.setBoundaries(globalTransporter.currentPosition, 6, rand * -12, 1);
+	                var pos = globalTransporter.currentPosition;
+	                transportedObject.setBoundaries(pos, 6, rand * -12, 1);
 	
 	                transportedObject = globalTransportedEngines[0];
-	                transportedObject.setBoundaries(globalTransporter.currentPosition, 6, 0, 1);
+	                transportedObject.setBoundaries(pos, 6, 0, 1);
 	
 	                transportedObject = globalTransportedEngines[2];
-	                transportedObject.setBoundaries(globalTransporter.currentPosition, 6, rand * -6, 1);
+	                transportedObject.setBoundaries(pos, 6, rand * -6, 1);
 	            }
 	
 	        });
