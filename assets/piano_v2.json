@@ -1,0 +1,46 @@
+{
+    "file_metadata": {
+        "identifiers": {
+            "url": "./assets/Piano30bpm.wav"
+        }
+    },
+    "segments": [{
+        "identifier": "I",
+        "time": [0.0, 3.0, 6.0, 9.0],
+        "duration": [3.0, 3.0, 3.0, 3.0],
+        "offset": [0]
+    }, {
+        "identifier": "II",
+        "time": [12, 15, 18, 21],
+        "duration": [3.0, 3.0, 3.0, 3.0],
+        "offset": [0]
+    }, {
+        "identifier": "III",
+        "time": [24, 27, 30, 33],
+        "duration": [3.0, 3.0, 3.0, 3.0],
+        "offset": [0]
+    }, {
+        "identifier": "IV",
+        "time": [36, 39, 42, 45],
+        "duration": [3.0, 3.0, 3.0, 3.0],
+        "offset": [0]
+    }, {
+        "identifier": "V",
+        "time": [48, 51, 54, 57],
+        "duration": [3.0, 3.0, 3.0, 3.0],
+        "offset": [0]
+    }, {
+        "identifier": "VI",
+        "time": [60, 63, 66, 69],
+        "duration": [3.0, 3.0, 3.0, 3.0],
+        "offset": [0]
+    }, {
+        "identifier": "VII",
+        "time": [72, 75, 78, 81],
+        "duration": [3.0, 3.0, 3.0, 3.0],
+        "offset": [0]
+    }],
+    "duration": [3.0, 3.0, 3.0, 3.0, 3.0],
+    "offset": [0],
+    "loudness": [-11.7729, -33.2137, -29.2265, -34.1923]
+}

@@ -21,7 +21,7 @@ if (env === 'build') {
 }
 
 const config = {
-    entry: `${__dirname}/src/index.js`,
+    entry: `${__dirname}/src/index_sequencer.js`,
     devtool: 'source-map',
     output: {
         path: `${__dirname}`,
@@ -40,6 +40,13 @@ const config = {
         loaders: [{
             test: /(\.jsx|\.js)$/,
             loader: 'babel-loader',
+            presets: [
+                'es2015',
+                'stage-0',
+            ],
+            plugins: [
+                'transform-runtime',
+            ],
             include: projectRoot
                 /*exclude: /(node_modules|bower_components)/*/
         }]

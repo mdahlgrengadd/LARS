@@ -1,4 +1,7 @@
-import * as wavesAudio from 'waves-audio';
+//import * as wavesAudio from 'waves-audio';
+
+let wavesAudio = require('../waves-audio.umd.js');
+
 import * as wavesLoaders from 'waves-loaders';
 
 import WebAudio from '../node_modules/wavesurfer.js/src/webaudio';
@@ -9,6 +12,7 @@ const PLAYING = 'playing';
 const PAUSED = 'paused';
 const FINISHED = 'finished';
 const progressions = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+// const progressions = ['I',  'IV', 'V'];
 
 const BUFFER_LENGTH = 12;
 
@@ -44,7 +48,7 @@ export default class MyWebAudio extends WebAudio {
         }
 
         // If no segment description (json) has been loaded,
-        // create one segment of the whole audio buffer.
+        // create a single segment of the whole audio buffer.
         if (!segmentDescriptions) {
             segmentDescriptions = {
                 'I': [0],
@@ -56,7 +60,6 @@ export default class MyWebAudio extends WebAudio {
         }
 
         // Pick a segment from the description
-        //let progressions = ['I',  'IV', 'V'];
         this.Engines = [];
         for (const _progression of progressions) {
             const _chord = segmentDescriptions[_progression];
@@ -95,26 +98,24 @@ export default class MyWebAudio extends WebAudio {
     loadFromJson(json) {
         this.segmentDescriptions = json;
         this.setupSegmentPlayer(json);
-        return 'Dummy';
     }
 
     setMasterTransport(master) {
 
         this.transport = master;
-        console.log('new master transport:');
-        console.log(master);
+
 
     }
 
     setMasterPlayControl(control) {
 
         this.playControl = control;
-        console.log('new master play control:');
-        console.log(control);
+
+ 
     }
 
-    switchEngine() {
-        const idx = Math.floor(Math.random() * this.Engines.length);
+    switchEngine(part) {
+        const idx = part || 0; // Math.floor(Math.random() * this.Engines.length);
         const item = this.Engines[idx];
         this.currentBufferSegment = idx;
 
@@ -175,16 +176,22 @@ export default class MyWebAudio extends WebAudio {
 
         let _flag = false;
 
+
+
         this.positionDisplay.advanceTime = (time) => {
-            //console.log(this.currentEngine.segmentIndex);
+            const MAX_SEGMENT = this.segmentDescriptions.I.length; // FIXME: This assumes all segments are equal to 'I'.
+
+            // console.log(this.currentEngine.segmentIndex);
             this.fireEvent('audioprocess', time);
             if (this.currentEngine) {
-                if (this.currentEngine.segmentIndex > 10) {
+                if (this.currentEngine.segmentIndex == MAX_SEGMENT-1) {
                     if (!_flag) {
-                        scheduler.remove(this.positionDisplay);
-                        this.switchEngine();
-                        scheduler.add(this.positionDisplay);
-                        console.log('trigger');
+                        //scheduler.remove(this.positionDisplay);
+                        //this.switchEngine(null);
+                        //scheduler.add(this.positionDisplay);
+                        //console.log('Send an event "Reaching end of segment, ready to accept chord change."');
+                        this.fireEvent("lastsegment");
+
                         _flag = true;
                     }
                 } else {

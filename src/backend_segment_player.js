@@ -1,9 +1,8 @@
-import MyWebAudio from './webaudio_segment_player';
+import MyWebAudio from './webaudio_segment_player_noPlayControl';
 
 export default class BackendPlugin {
 
     static create(params) {
-        console.log('create:params');
         return {
             name: 'backend',
             deferInit: params && params.deferInit ? params.deferInit : false,
@@ -16,8 +15,6 @@ export default class BackendPlugin {
     }
 
     constructor(params, ws) {
-        console.log('construct:params');
-
         this.wavesurfer = ws;
         this.wavesurfer.Backend = MyWebAudio;
         this.wavesurfer.createBackend();
@@ -25,7 +22,7 @@ export default class BackendPlugin {
         this.setupPluginDOM(ws);
 
         this.wavesurfer.on('ready', () => {
-            console.log(params);
+            //console.log(params);
             if (params.transport) {
                 ws.backend.setMasterTransport(params.transport);
 
@@ -38,7 +35,6 @@ export default class BackendPlugin {
             if (params.json) {
                 ws.backend.loadFromJson(params.json);
             }
-
         });
 
 
