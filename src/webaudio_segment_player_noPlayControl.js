@@ -2,7 +2,8 @@
 import * as wavesLoaders from 'waves-loaders';
 import WebAudio from '../node_modules/wavesurfer.js/src/webaudio';
 
-let wavesAudio = require('../waves-audio.umd.js');
+//let wavesAudio = require('../waves-audio.umd.js');
+import * as wavesAudio from '../../waves-audio/src/index';
 
 const PLAYING = 'playing';
 const PAUSED = 'paused';
@@ -56,23 +57,41 @@ export default class MyWebAudio extends WebAudio {
         console.log("NEW SEGMENT:")
         console.log(newSegments);
 
-        this.transportedSegmentEngine = new wavesAudio.SegmentEngine({
+        this.transportedEngine = new wavesAudio.SegmentEngine({
             buffer: this.source.buffer,
             positionArray: newSegments.time,
             durationArray: newSegments.duration,
             offsetArray: newSegments.offset,
-            durationRel: 0.95,
-            releaseAbs: 0.005,
-            releaseRel: 0.005,
-            cyclic: false,
+            polyCutoff: segmentDescriptions.cutoffTime || 2,
+            polyEndvol: 0,
+            attackAbs: segmentDescriptions.attackAbs || 0.005,
+            speed: segmentDescriptions.speed || 1.0, /* not used currently */
+            periodAbs: segmentDescriptions.periodAbs || 0.0,
+            periodRel: segmentDescriptions.periodRel || 1,//0.087,
+            periodVar: segmentDescriptions.periodVar || 0,//0.052,
+            position: segmentDescriptions.position || 0.0,
+            positionVar: segmentDescriptions.positionVar || 0.0,
+            durationAbs: segmentDescriptions.durationAbs || 0,//0.43,
+            durationRel: segmentDescriptions.durationRel || 0.95,
+            attackAbs: segmentDescriptions.attackAbs || 0.005,
+            attackRel: segmentDescriptions.attackRel || 0.0,
+            releaseAbs: segmentDescriptions.releaseAbs || 0.005,
+            releaseRel: segmentDescriptions.releaseRel || 0,//0.005,
+            releaseShape: segmentDescriptions.releaseShape || "lin",
+            expRampOffset: segmentDescriptions.expRampOffset || 0.0001,
+            resampling: segmentDescriptions.resampling || 0.0,
+            resamplingVar: segmentDescriptions.resamplingVar || 0,
+            gain: segmentDescriptions.gain || 1.0,
+            centered: segmentDescriptions.centered || true,
+            cyclic: segmentDescriptions.cyclic || false,
 
         });
-        this.transportedSegmentEngine.connect(this.analyser);
+        this.transportedEngine.connect(this.analyser);
 
-        this.transportedObj = this.transport.add(this.transportedSegmentEngine,99999);
-        console.log("adding engine at transport pos 99999");
-        //this.transportedObj.setBoundaries(0, 24, 0, 1);
-        //console.log(this.transportedObj);
+        //this.transportedObj = this.transport.add(this.transportedEngine, 99999);
+        //console.log("adding engine at transport pos 99999");
+
+        this.setVolume(segmentDescriptions.gain || 1);
 
     }
 
@@ -98,14 +117,14 @@ export default class MyWebAudio extends WebAudio {
     }
 
     getTransported() {
-        return this.transportedObj;
+        return this.transportedEngine;
     }
 
     switchEngine(part) {
         const _headroom = 1;
         //console.log("PART:" + part);
-        
-        if (part > this.segmentDescriptions.segments.length-1) {
+
+        if (part > this.segmentDescriptions.segments.length - 1) {
             console.log("Trying to set part that dont exist!");
             part = 0;
         }
@@ -178,11 +197,11 @@ export default class MyWebAudio extends WebAudio {
         this.positionDisplay.advanceTime = (time) => {
             // console.log(this.currentEngine.segmentIndex);
             this.fireEvent('audioprocess', time);
-            if (this.transportedSegmentEngine) {
+            if (this.transportedEngine) {
                 const idx = this.currentPart || 0;
                 const MAX_SEGMENT = this.segmentDescriptions.segments[idx].time.length; // FIXME: This assumes all segments are equal to first.
                 
-                const seg = Modulo(this.transportedSegmentEngine.segmentIndex - 1, MAX_SEGMENT) + 1;
+                const seg = Modulo(this.transportedEngine.segmentIndex - 1, MAX_SEGMENT) + 1;
                 //console.log("seg: " + seg + " / " + MAX_SEGMENT);
                 switch (seg) {
                     case MAX_SEGMENT: //last segment in serie
@@ -224,7 +243,7 @@ export default class MyWebAudio extends WebAudio {
 
     getPlayedTime() {
 
-        return this.transportedSegmentEngine.currentPosition;
+        return this.transportedEngine.currentPosition;
 
     }
     play(start, end) {

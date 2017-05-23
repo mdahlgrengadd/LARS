@@ -43,6 +43,10 @@ export default class MyWebAudio extends WebAudio {
         super.destroy();
     }
 
+    getTransported() {
+        return this.transportedEngine;
+    }
+
     createSource() {
         const self = this;
         /*
@@ -119,21 +123,40 @@ export default class MyWebAudio extends WebAudio {
             self.scheduledGranularEngine = new wavesAudio.GranularEngine({
                 buffer: self.source.buffer
             });
-            self.scheduledGranularEngine.connect(self.analyser);
+            //self.scheduledGranularEngine.connect(self.analyser);
 
             // create transport with play control and transported granular engine
-            //console.log(self.transportedGranularEngine);
-            self.transportedGranularEngine = new wavesAudio.GranularEngine({
+            //console.log(self.transportedEngine);
+            self.transportedEngine = new wavesAudio.GranularEngine({
                 buffer: self.source.buffer,
-                cyclic: true
+                speed: 0.5,
+                periodAbs: 0.0003,
+                periodRel: 10,
+                periodVar: 0.0,
+                position: 0.0,
+                positionVar: 0.001,
+                durationAbs: 0.005,
+                durationRel: 20,/*!!!!!!!!!!!*/
+                attackAbs: 0.01,
+                attackRel: 0.0,
+                releaseAbs: 0.0,
+                releaseRel: 1.00,
+                releaseShape: 'lin',
+                expRampOffset: 0.0000,
+                resampling: 0,
+                resamplingVar: 0,
+                gain: 1,
+                centered: true,
+                cyclic: true,
+
             });
 
 
 
-            //self.transportedGranularEngine.connect(self.analyser);
-            //self.transport.add(self.transportedGranularEngine);
+            self.transportedEngine.connect(self.analyser);
+            //self.transport.add(self.transportedEngine);
 
-            self.scheduler.add(self.scheduledGranularEngine);
+            //self.scheduler.add(self.scheduledGranularEngine);
 
 
 
@@ -240,7 +263,7 @@ export default class MyWebAudio extends WebAudio {
         //this.source.start(0, start, end - start);
         //play();
 
-        //scheduler.add(this.transportedGranularEngine);
+        //scheduler.add(this.transportedEngine);
 
         this.playControl.start();
         this.playControl.seek(start);
@@ -261,7 +284,7 @@ export default class MyWebAudio extends WebAudio {
         //this.source && this.source.stop(0);
 
         this.playControl.pause();
-        //scheduler.remove(this.transportedGranularEngine);
+        //scheduler.remove(this.transportedEngine);
 
 
         this.setState(PAUSED);

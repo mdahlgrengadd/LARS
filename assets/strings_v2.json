@@ -1,0 +1,64 @@
+{
+    "file_metadata": {
+        "identifiers": {
+            "url": "./assets/strings.wav"
+        }
+    },
+    "segments": [{
+        "identifier": "I",
+        "time": [0.0],
+        "duration": [6.0],
+        "offset": [0]
+    }, {
+        "identifier": "II",
+        "time": [12],
+        "duration": [6.0],
+        "offset": [0]
+    }, {
+        "identifier": "III",
+        "time": [24],
+        "duration": [6.0],
+        "offset": [0]
+    }, {
+        "identifier": "IV",
+        "time": [36],
+        "duration": [6.0],
+        "offset": [0]
+    }, {
+        "identifier": "V",
+        "time": [48],
+        "duration": [6.0],
+        "offset": [0]
+    }, {
+        "identifier": "VI",
+        "time": [60],
+        "duration": [6.0],
+        "offset": [0]
+    }, {
+        "identifier": "VII",
+        "time": [72],
+        "duration": [6.0],
+        "offset": [0]
+    }],
+    "speed": 1.0,
+    "periodAbs": 0.00005,
+    "periodRel": 0.087,
+    "periodVar": 0.052,
+    "position": 0.0,
+    "positionVar": 0.0,
+    "durationAbs": 0.43,
+    "durationRel": 0.95,
+    "attackAbs": 0.25,
+    "attackRel": 0.0,
+    "releaseAbs": 0.005,
+    "releaseRel": 0.005,
+    "releaseShape": "lin",
+    "expRampOffset": 0.0001,
+    "resampling": 0.0,
+    "resamplingVar": 0,
+    "gain": 1.0,
+    "centered": true,
+    "cyclic": true,
+    "cutoffTime": 0.25,
+    "offset": [0]
+}

@@ -7,7 +7,8 @@ import WaveSurfer from 'wavesurfer.js';
 import GranularBackend from './backend_granular_player';
 import SegmentBackend from './backend_segment_player';
 
-let wavesAudio = require('../waves-audio.umd.js');
+//let wavesAudio = require('../waves-audio.umd.js');
+import * as wavesAudio from '../../waves-audio/src/index';
 
 const globalTransporter = new wavesAudio.Transport();
 const globalPlayControl = new wavesAudio.PlayControl(globalTransporter);
@@ -23,11 +24,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const loader = new wavesLoaders.SuperLoader(); // instantiate loader
 
     const assets = [
-        './assets/footstomps_v2.json',
         './assets/piano_v2.json',
-        './assets/3_4_guitar-loop_v2.json'
+        './assets/footstomps_v2.json',
+        //'./assets/3_4_guitar-loop_v2.json',
+        './assets/strings_v2.json',
     ];
 
+            /* Resampling Slider */
+            let r = document.createElement("INPUT");
+            r.setAttribute("type", "range");
+            r.min = -40;
+            r.max = 40;
+            r.step = 10;
+            r.value = 0;
+            document.getElementById('waveform').appendChild(r);
 
     // load audio and marker files
     loader.load(assets).then((jsonfiles) => {
@@ -44,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let sequencer = new wavesAudio.SequencerEngine({
             // buffer not used, but requires more changes in source to be able to remove.
             // perhaps I will use it as a recording sink...
-            buffer: wavesAudio.audioContext.createBuffer(2, 22050, 44100), 
+            buffer: wavesAudio.audioContext.createBuffer(2, 22050, 44100),
             positionArray: sequenceData.time,
             durationArray: sequenceData.duration,
             offsetArray: sequenceData.offset,
@@ -53,18 +63,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Ok, so right now just outputting random chords,
                 // but this will be controlled by the sequencer in the future...
                 console.log("Sequencer says: " + sequenceData.identifier[seqIndex]); // print sequencer chords, (not what's playing, though)
-                //console.log(globalTransportedEngines);
-                var rand = Math.floor(Math.random() * 6);
-                let transportedObject = globalTransportedEngines[1];
+                console.log(globalTransportedEngines);
                 let pos = globalTransporter.currentPosition;
-                transportedObject.setBoundaries(pos, 6, rand * -12, 1);
+                var rand = Math.floor(Math.random() * 6);
+                let transportedObject1 = globalTransportedEngines[2];
+                transportedObject1.setBoundaries(pos, 6, rand * -12, 1);
 
-                transportedObject = globalTransportedEngines[0];
-                transportedObject.setBoundaries(pos, 6, 0, 1);
+                let transportedObject2 = globalTransportedEngines[1];
+                transportedObject2.setBoundaries(pos, 6, 0, 1);
 
-
-                transportedObject = globalTransportedEngines[2];
-                transportedObject.setBoundaries(pos, 6, rand * -6, 1);
+                let transportedObject3 = globalTransportedEngines[0];
+                transportedObject3.setBoundaries(pos, 6, rand * -12, 1);
 
             }
 
@@ -80,11 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const demo = document.getElementById('waveform');
             demo.appendChild(waveform);
 
-            const wavesurfer = WaveSurfer.create({
+            let wavesurfer = WaveSurfer.create({
                 container: waveform,
                 plugins: [
 
-                    //GranularBackend.create()
+                    //GranularBackend.create({
                     SegmentBackend.create({
                         transport: globalTransporter,
                         playctrl: globalPlayControl,
@@ -103,7 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 //let transportedObject = globalTransporter.add(engine, 99999);
 
 
-                let transportedObject = wavesurfer.backend.getTransported();
+                let engine = wavesurfer.backend.getTransported();
+                let transportedObject = globalTransporter.add(engine, 99999);
+                console.log("adding engine at transport pos 99999");
 
                 transportedObject.advancePosition = function(time, position, speed) {
                     position = this.__offsetPosition + this.__engine.advancePosition(time, position - this.__offsetPosition, speed);
@@ -121,6 +132,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             wavesurfer.load(fname);
 
+            /* Gain Slider */
+            let x = document.createElement("INPUT");
+            x.setAttribute("type", "range");
+            x.min = 0;
+            x.max = 1;
+            x.step = 0.01;
+            x.value = 1;
+            demo.insertBefore(x, waveform);
+            x.oninput = () => {
+                wavesurfer.setVolume(x.value);
+                //wavesurfer.backend.transportedSegmentEngine.polyCutoff = x.value;
+            };
+
+            r.addEventListener("mouseup", function() {
+                wavesurfer.backend.transportedEngine.resampling = r.value;
+                console.log(r.value);
+            }, false);
 
 
         }
@@ -133,14 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
             //globalPlayControl.seek(slider.value/10);
         };
 
-        globalPlayControl.speed = 1.3 * 2;
+        globalPlayControl.speed = 1.5 * 2;
         slider.value = globalPlayControl.speed * 100 / 2;
 
         button1.addEventListener('click', () => {
 
             globalPlayControl.seek(0);
             globalPlayControl.loop = true;
-            globalPlayControl.setLoopBoundaries(0,60);
+            globalPlayControl.setLoopBoundaries(0, 60);
             globalPlayControl.start();
 
 
